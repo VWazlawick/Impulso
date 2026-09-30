@@ -23,13 +23,12 @@ CREATE TABLE cidade (
 );
 
 -- Pessoas e acesso
-CREATE TYPE tipo_usuario_enum AS ENUM ('ADMIN', 'PROFISSIONAL', 'RESPONSAVEL');
-
 CREATE TABLE usuario (
     id         BIGSERIAL PRIMARY KEY,
     email      VARCHAR(150) NOT NULL UNIQUE,
-    senha_hash VARCHAR(255) NOT NULL,
-    tipo       tipo_usuario_enum NOT NULL
+    sn_usuario VARCHAR(255) NOT NULL,
+    tp_usuario VARCHAR(20)  NOT NULL
+        CHECK (tp_usuario IN ('ADMIN', 'PROFISSIONAL', 'RESPONSAVEL'))
 );
 
 CREATE TABLE empresa (
@@ -54,17 +53,14 @@ CREATE TABLE responsavel (
 );
 
 -- Aluno
-CREATE TYPE tipo_servico_enum AS ENUM (
-    'UMA_VEZ_SEMANA', 'DUAS_VEZES_SEMANA', 'TRES_VEZES_SEMANA', 'DIARIA'
-);
-
 CREATE TABLE aluno (
     id               BIGSERIAL PRIMARY KEY,
     nome             VARCHAR(150) NOT NULL,
     cpf              VARCHAR(14),
     email            VARCHAR(150),
     data_nascimento  DATE NOT NULL,
-    tp_servico       tipo_servico_enum,
+    tp_servico       VARCHAR(20)
+        CHECK (tp_servico IN ('UMA_VEZ_SEMANA', 'DUAS_VEZES_SEMANA', 'TRES_VEZES_SEMANA', 'DIARIA')),
     profissional_id  BIGINT NOT NULL REFERENCES profissional(id)
 );
 
@@ -101,14 +97,11 @@ CREATE TABLE questionario (
     idade_max  INT
 );
 
-CREATE TYPE tipo_pergunta_enum AS ENUM (
-    'MULTIPLA_ESCOLHA', 'VERDADEIRO_FALSO', 'ESCALA', 'TEXTO_LIVRE', 'MEDIDA_NUMERICA'
-);
-
 CREATE TABLE pergunta (
     id               BIGSERIAL PRIMARY KEY,
     enunciado        VARCHAR(255) NOT NULL,
-    tipo             tipo_pergunta_enum NOT NULL,
+    tipo             VARCHAR(20)  NOT NULL
+        CHECK (tipo IN ('MULTIPLA_ESCOLHA', 'VERDADEIRO_FALSO', 'ESCALA', 'TEXTO_LIVRE', 'MEDIDA_NUMERICA')),
     unidade          VARCHAR(20),
     categoria        VARCHAR(100),
     indice           INT,
