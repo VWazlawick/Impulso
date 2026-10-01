@@ -2,24 +2,26 @@
 -- Impulso — Script DDL (PostgreSQL)
 -- ============================================================
 
+-- Documentos (CPF, CNPJ, CEP) e siglas são gravados só com dígitos/letras, sem formatação.
+
 -- Geografia (dados de referência, somente leitura para os demais perfis)
 CREATE TABLE pais (
-    id     BIGSERIAL PRIMARY KEY,
-    nome   VARCHAR(100) NOT NULL,
-    sigla  VARCHAR(5)   NOT NULL
+    id       BIGSERIAL PRIMARY KEY,
+    nm_pais  VARCHAR(100) NOT NULL,
+    sg_pais  VARCHAR(2)   NOT NULL UNIQUE
 );
 
 CREATE TABLE estado (
-    id      BIGSERIAL PRIMARY KEY,
-    nome    VARCHAR(100) NOT NULL,
-    sigla   VARCHAR(5)   NOT NULL,
-    pais_id BIGINT       NOT NULL REFERENCES pais(id)
+    id         BIGSERIAL PRIMARY KEY,
+    nm_estado  VARCHAR(100) NOT NULL,
+    sg_estado  VARCHAR(2)   NOT NULL UNIQUE,
+    pais_id    BIGINT       NOT NULL REFERENCES pais(id)
 );
 
 CREATE TABLE cidade (
-    id        BIGSERIAL PRIMARY KEY,
-    nome      VARCHAR(150) NOT NULL,
-    estado_id BIGINT       NOT NULL REFERENCES estado(id)
+    id         BIGSERIAL PRIMARY KEY,
+    nm_cidade  VARCHAR(150) NOT NULL,
+    estado_id  BIGINT       NOT NULL REFERENCES estado(id)
 );
 
 -- Pessoas e acesso
@@ -34,53 +36,51 @@ CREATE TABLE usuario (
 CREATE TABLE empresa (
     id            BIGSERIAL PRIMARY KEY,
     razao_social  VARCHAR(150) NOT NULL,
-    cnpj          VARCHAR(20)  NOT NULL UNIQUE
+    cnpj          VARCHAR(14)  NOT NULL UNIQUE
 );
 
 CREATE TABLE profissional (
-    id          BIGSERIAL PRIMARY KEY,
-    nome        VARCHAR(150) NOT NULL,
-    cpf         VARCHAR(14)  NOT NULL UNIQUE,
-    usuario_id  BIGINT       NOT NULL UNIQUE REFERENCES usuario(id),
-    empresa_id  BIGINT       NOT NULL REFERENCES empresa(id)
+    id               BIGSERIAL PRIMARY KEY,
+    nm_profissional  VARCHAR(150) NOT NULL,
+    cpf              VARCHAR(11)  NOT NULL UNIQUE,
+    usuario_id       BIGINT       NOT NULL UNIQUE REFERENCES usuario(id),
+    empresa_id       BIGINT       NOT NULL REFERENCES empresa(id)
 );
 
 CREATE TABLE responsavel (
-    id          BIGSERIAL PRIMARY KEY,
-    nome        VARCHAR(150) NOT NULL,
-    cpf         VARCHAR(14)  NOT NULL UNIQUE,
-    usuario_id  BIGINT       NOT NULL UNIQUE REFERENCES usuario(id)
+    id              BIGSERIAL PRIMARY KEY,
+    nm_responsavel  VARCHAR(150) NOT NULL,
+    cpf             VARCHAR(11)  NOT NULL UNIQUE,
+    usuario_id      BIGINT       NOT NULL UNIQUE REFERENCES usuario(id)
 );
 
 -- Aluno
 CREATE TABLE aluno (
     id               BIGSERIAL PRIMARY KEY,
-    nome             VARCHAR(150) NOT NULL,
-    cpf              VARCHAR(14),
+    nm_aluno         VARCHAR(150) NOT NULL,
+    cpf              VARCHAR(11)  UNIQUE,
     email            VARCHAR(150),
-    data_nascimento  DATE NOT NULL,
-    tp_servico       VARCHAR(20)
-        CHECK (tp_servico IN ('UMA_VEZ_SEMANA', 'DUAS_VEZES_SEMANA', 'TRES_VEZES_SEMANA', 'DIARIA')),
+    dt_nascimento    DATE NOT NULL,
+    tp_servico       VARCHAR(20)  NOT NULL
+        CHECK (tp_servico IN ('UMA_VEZ_SEMANA', 'DUAS_VEZES_SEMANA', 'DIARIA')),
     profissional_id  BIGINT NOT NULL REFERENCES profissional(id)
 );
 
 CREATE TABLE endereco (
     id            BIGSERIAL PRIMARY KEY,
     rua           VARCHAR(150) NOT NULL,
-    numero        VARCHAR(20),
-    bairro        VARCHAR(100),
-    cep           VARCHAR(10),
+    nr_casa       VARCHAR(20)  NOT NULL,
+    bairro        VARCHAR(100) NOT NULL,
+    cep           VARCHAR(8)   NOT NULL,
     complemento   VARCHAR(100),
-    tipo          VARCHAR(30),
     cidade_id     BIGINT NOT NULL REFERENCES cidade(id),
     aluno_id      BIGINT NOT NULL REFERENCES aluno(id)
 );
 
 CREATE TABLE telefone (
-    id        BIGSERIAL PRIMARY KEY,
-    numero    VARCHAR(20) NOT NULL,
-    tipo      VARCHAR(30),
-    aluno_id  BIGINT NOT NULL REFERENCES aluno(id)
+    id           BIGSERIAL PRIMARY KEY,
+    nr_telefone  VARCHAR(20) NOT NULL,
+    aluno_id     BIGINT NOT NULL REFERENCES aluno(id)
 );
 
 CREATE TABLE aluno_responsavel (

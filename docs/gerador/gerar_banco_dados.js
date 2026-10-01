@@ -14,20 +14,20 @@ const SAIDA = path.join(__dirname, "..", "Planejamento_Banco_de_Dados.docx");
 
 const grupos = [
   { nome: "Geografia (referência)", cor: "#EDEDED", tabelas: [
-    ["Pais", [["id", "int", "pk"], ["nome", "String"], ["sigla", "String"]]],
-    ["Estado", [["id", "int", "pk"], ["nome", "String"], ["sigla", "String"], ["pais_id", "int", "fk"]]],
-    ["Cidade", [["id", "int", "pk"], ["nome", "String"], ["estado_id", "int", "fk"]]],
+    ["Pais", [["id", "int", "pk"], ["nm_pais", "String"], ["sg_pais", "String"]]],
+    ["Estado", [["id", "int", "pk"], ["nm_estado", "String"], ["sg_estado", "String"], ["pais_id", "int", "fk"]]],
+    ["Cidade", [["id", "int", "pk"], ["nm_cidade", "String"], ["estado_id", "int", "fk"]]],
   ]},
   { nome: "Pessoas e Acesso", cor: "#E2EFDA", tabelas: [
     ["Usuario", [["id", "int", "pk"], ["email", "String"], ["sn_usuario", "String"], ["tp_usuario", "TipoUsuarioEnum"]]],
-    ["Profissional", [["id", "int", "pk"], ["nome", "String"], ["cpf", "String"], ["usuario_id", "int", "fk"], ["empresa_id", "int", "fk"]]],
-    ["Responsavel", [["id", "int", "pk"], ["nome", "String"], ["cpf", "String"], ["usuario_id", "int", "fk"]]],
+    ["Profissional", [["id", "int", "pk"], ["nm_profissional", "String"], ["cpf", "String"], ["usuario_id", "int", "fk"], ["empresa_id", "int", "fk"]]],
+    ["Responsavel", [["id", "int", "pk"], ["nm_responsavel", "String"], ["cpf", "String"], ["usuario_id", "int", "fk"]]],
     ["Empresa", [["id", "int", "pk"], ["razao_social", "String"], ["cnpj", "String"]]],
   ]},
   { nome: "Aluno", cor: "#FFF2CC", tabelas: [
-    ["Aluno", [["id", "int", "pk"], ["nome", "String"], ["cpf", "String"], ["email", "String"], ["data_nascimento", "Date"], ["tp_servico", "TipoServicoEnum"], ["profissional_id", "int", "fk"]]],
-    ["Endereco", [["id", "int", "pk"], ["rua", "String"], ["numero", "String"], ["bairro", "String"], ["cep", "String"], ["complemento", "String"], ["tipo", "String"], ["cidade_id", "int", "fk"], ["aluno_id", "int", "fk"]]],
-    ["Telefone", [["id", "int", "pk"], ["numero", "String"], ["tipo", "String"], ["aluno_id", "int", "fk"]]],
+    ["Aluno", [["id", "int", "pk"], ["nm_aluno", "String"], ["cpf", "String"], ["email", "String"], ["dt_nascimento", "Date"], ["tp_servico", "TipoServicoEnum"], ["profissional_id", "int", "fk"]]],
+    ["Endereco", [["id", "int", "pk"], ["rua", "String"], ["nr_casa", "String"], ["bairro", "String"], ["cep", "String"], ["complemento", "String"], ["cidade_id", "int", "fk"], ["aluno_id", "int", "fk"]]],
+    ["Telefone", [["id", "int", "pk"], ["nr_telefone", "String"], ["aluno_id", "int", "fk"]]],
     ["AlunoResponsavel", [["aluno_id", "int", "pk"], ["responsavel_id", "int", "pk"]]],
   ]},
   { nome: "Avaliação", cor: "#DDEBF7", tabelas: [
@@ -53,7 +53,9 @@ const relacoes = [
 const notas = [
   ["Geografia (Pais, Estado, Cidade)", "Dados de referência, cadastrados previamente e somente leitura para Profissional/Responsável. Usados no preenchimento de Endereco."],
   ["Usuario / Profissional / Responsavel", "Usuario concentra e-mail, senha e o tipo de acesso (ADMIN, PROFISSIONAL, RESPONSAVEL). Profissional e Responsavel guardam dados pessoais específicos e se relacionam 1:1 com Usuario."],
-  ["Aluno", "Pertence a um Profissional responsável pelo cadastro. tp_servico guarda a frequência semanal contratada (enum simples, sem depender de Aula/Contrato, que ficam para uma fase futura)."],
+  ["Aluno", "Pertence a um Profissional responsável pelo cadastro. tp_servico (obrigatório) guarda a frequência semanal contratada: UMA_VEZ_SEMANA, DUAS_VEZES_SEMANA ou DIARIA — enum simples, sem depender de Aula/Contrato, que ficam para uma fase futura."],
+  ["Documentos e siglas", "CPF (11), CNPJ (14), CEP (8) e siglas de país/estado (2) são gravados só com dígitos/letras, sem pontuação. A formatação para exibição fica a cargo da interface."],
+  ["Convenção de nomes", "Colunas seguem os prefixos do código Java convertidos para snake_case: nm_ (nome), sg_ (sigla), dt_ (data), tp_ (tipo), nr_ (número), sn_ (senha)."],
   ["AlunoResponsavel", "Tabela associativa N:N — um aluno pode ter mais de um responsável e vice-versa."],
   ["Questionario / Pergunta / OpcaoPergunta", "Questionario representa o conjunto de perguntas de uma faixa etária (idade_min/idade_max, a preencher quando definido). Pergunta suporta 5 tipos (múltipla escolha, verdadeiro/falso, escala, texto livre, medida numérica), com unidade, categoria e índice para refletir a organização real da ficha de avaliação."],
   ["Avaliacao", "Guarda qual Questionario foi utilizado (snapshot), não apenas a idade do aluno na data — assim o histórico não muda se as faixas etárias forem editadas depois."],
