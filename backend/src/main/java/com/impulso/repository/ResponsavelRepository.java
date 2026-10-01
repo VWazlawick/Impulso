@@ -9,5 +9,5 @@ public interface ResponsavelRepository extends JpaRepository<Responsavel, Long> 
 
     Optional<Responsavel> findByUsuarioId(Long usuarioId);
 
-    boolean existByCpf(String cpf);
+    boolean existsByCpf(String cpf);
 }

@@ -9,5 +9,5 @@ public interface ProfissionalRepository extends JpaRepository<Profissional, Long
 
     Optional<Profissional> findByUsuarioId(Long usuarioId);
 
-    boolean existByCpf(String cpf);
+    boolean existsByCpf(String cpf);
 }
