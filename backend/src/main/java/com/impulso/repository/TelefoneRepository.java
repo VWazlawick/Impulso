@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface TelefoneRepository extends JpaRepository<Telefone, Long> {
 
-    List<Telefone> findByAlunoId(Long alunoId);
+    List<Telefone> findByPessoaId(Long pessoaId);
 }

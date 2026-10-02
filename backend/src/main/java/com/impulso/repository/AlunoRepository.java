@@ -9,7 +9,5 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
 
     List<Aluno> findByProfissionalId(Long profissionalId);
 
-    boolean existsByCpf(String cpf);
-
     List<Aluno> findByResponsaveisId(Long responsavelId);
 }

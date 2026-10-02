@@ -10,29 +10,18 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Profissional {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
-    private String nmProfissional;
-
-    @Column(nullable = false, unique = true, length = 11)
-    private String cpf;
+public class Profissional extends Pessoa{
 
     @OneToOne
-    @JoinColumn(name = "usuario_id", nullable = false, unique = true)
+    @JoinColumn(name = "usuario_id", unique = true)
     private Usuario usuario;
 
     @ManyToOne
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
 
-    public Profissional(String nmProfissional, String cpf, Usuario usuario, Empresa empresa) {
-        this.nmProfissional = nmProfissional;
-        this.cpf = cpf;
-        this.usuario = usuario;
+    public Profissional(String nmPessoa, String cpf, String email, Empresa empresa){
+        super(nmPessoa, cpf, email);
         this.empresa = empresa;
     }
 }

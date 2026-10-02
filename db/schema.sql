@@ -30,7 +30,8 @@ CREATE TABLE usuario (
     email      VARCHAR(150) NOT NULL UNIQUE,
     sn_usuario VARCHAR(255) NOT NULL,
     tp_usuario VARCHAR(20)  NOT NULL
-        CHECK (tp_usuario IN ('ADMIN', 'PROFISSIONAL', 'RESPONSAVEL'))
+        CHECK (tp_usuario IN ('ADMIN', 'PROFISSIONAL', 'RESPONSAVEL')),
+    st_ativo   BOOLEAN      NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE empresa (
@@ -39,27 +40,30 @@ CREATE TABLE empresa (
     cnpj          VARCHAR(14)  NOT NULL UNIQUE
 );
 
+-- Pessoa: dados comuns de profissional, responsável e aluno (herança JPA JOINED).
+-- O id das tabelas filhas é o mesmo id da pessoa. CPF é opcional aqui porque o aluno
+-- pode não ter; a obrigatoriedade para profissional e responsável é validada na aplicação.
+CREATE TABLE pessoa (
+    id         BIGSERIAL PRIMARY KEY,
+    nm_pessoa  VARCHAR(150) NOT NULL,
+    cpf        VARCHAR(11)  UNIQUE,
+    email      VARCHAR(150)
+);
+
+-- usuario_id é opcional: a pessoa é cadastrada primeiro e o acesso ao sistema é criado depois.
 CREATE TABLE profissional (
-    id               BIGSERIAL PRIMARY KEY,
-    nm_profissional  VARCHAR(150) NOT NULL,
-    cpf              VARCHAR(11)  NOT NULL UNIQUE,
-    usuario_id       BIGINT       NOT NULL UNIQUE REFERENCES usuario(id),
-    empresa_id       BIGINT       NOT NULL REFERENCES empresa(id)
+    id          BIGINT PRIMARY KEY REFERENCES pessoa(id),
+    usuario_id  BIGINT UNIQUE REFERENCES usuario(id),
+    empresa_id  BIGINT NOT NULL REFERENCES empresa(id)
 );
 
 CREATE TABLE responsavel (
-    id              BIGSERIAL PRIMARY KEY,
-    nm_responsavel  VARCHAR(150) NOT NULL,
-    cpf             VARCHAR(11)  NOT NULL UNIQUE,
-    usuario_id      BIGINT       NOT NULL UNIQUE REFERENCES usuario(id)
+    id          BIGINT PRIMARY KEY REFERENCES pessoa(id),
+    usuario_id  BIGINT UNIQUE REFERENCES usuario(id)
 );
 
--- Aluno
 CREATE TABLE aluno (
-    id               BIGSERIAL PRIMARY KEY,
-    nm_aluno         VARCHAR(150) NOT NULL,
-    cpf              VARCHAR(11)  UNIQUE,
-    email            VARCHAR(150),
+    id               BIGINT PRIMARY KEY REFERENCES pessoa(id),
     dt_nascimento    DATE NOT NULL,
     tp_servico       VARCHAR(20)  NOT NULL
         CHECK (tp_servico IN ('UMA_VEZ_SEMANA', 'DUAS_VEZES_SEMANA', 'DIARIA')),
@@ -74,13 +78,13 @@ CREATE TABLE endereco (
     cep           VARCHAR(8)   NOT NULL,
     complemento   VARCHAR(100),
     cidade_id     BIGINT NOT NULL REFERENCES cidade(id),
-    aluno_id      BIGINT NOT NULL REFERENCES aluno(id)
+    pessoa_id     BIGINT NOT NULL REFERENCES pessoa(id)
 );
 
 CREATE TABLE telefone (
     id           BIGSERIAL PRIMARY KEY,
     nr_telefone  VARCHAR(20) NOT NULL,
-    aluno_id     BIGINT NOT NULL REFERENCES aluno(id)
+    pessoa_id    BIGINT NOT NULL REFERENCES pessoa(id)
 );
 
 CREATE TABLE aluno_responsavel (
@@ -139,6 +143,8 @@ CREATE TABLE avaliacao_resumo (
 
 -- Índices de apoio às consultas mais comuns
 CREATE INDEX idx_aluno_profissional ON aluno(profissional_id);
+CREATE INDEX idx_endereco_pessoa ON endereco(pessoa_id);
+CREATE INDEX idx_telefone_pessoa ON telefone(pessoa_id);
 CREATE INDEX idx_avaliacao_aluno ON avaliacao(aluno_id);
 CREATE INDEX idx_resposta_avaliacao ON resposta(avaliacao_id);
 CREATE INDEX idx_avaliacao_resumo_avaliacao ON avaliacao_resumo(avaliacao_id);

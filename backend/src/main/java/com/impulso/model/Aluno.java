@@ -15,19 +15,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Aluno {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "nmAluno", nullable = false)
-    private String nmAluno;
-
-    @Column(name = "cpf", nullable = true, unique = true, length = 11)
-    private String cpf;
-
-    @Column(name = "email", nullable = true)
-    private String email;
+public class Aluno extends Pessoa{
 
     @Column(name = "dtNascimento", nullable = false)
     private LocalDate dtNascimento;
@@ -48,12 +36,7 @@ public class Aluno {
     )
     private Set<Responsavel> responsaveis = new HashSet<>();
 
-    public Aluno(String nmAluno, String cpf, String email, LocalDate dtNascimento, TipoServicoEnum tpServico, Profissional profissional) {
-        this.nmAluno = nmAluno;
-        this.cpf = cpf;
-        this.email = email;
-        this.dtNascimento = dtNascimento;
-        this.tpServico = tpServico;
-        this.profissional = profissional;
+    public Aluno(String nmPessoa, String cpf, String email){
+        super(nmPessoa, cpf, email);
     }
 }

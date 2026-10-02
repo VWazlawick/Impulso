@@ -22,6 +22,9 @@ public class Usuario {
     @Column(nullable = false)
     private String snUsuario;
 
+    @Column(nullable = false)
+    private boolean stAtivo = true;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TipoUsuarioEnum tpUsuario;

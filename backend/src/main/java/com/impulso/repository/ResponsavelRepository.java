@@ -8,6 +8,4 @@ import java.util.Optional;
 public interface ResponsavelRepository extends JpaRepository<Responsavel, Long> {
 
     Optional<Responsavel> findByUsuarioId(Long usuarioId);
-
-    boolean existsByCpf(String cpf);
 }

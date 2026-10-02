@@ -19,11 +19,11 @@ public class Telefone {
     private String nrTelefone;
 
     @ManyToOne
-    @JoinColumn(name = "aluno_id", nullable = false)
-    private Aluno aluno;
+    @JoinColumn(name = "pessoa_id", nullable = false)
+    private Pessoa pessoa;
 
-    public Telefone(String nrTelefone, Aluno aluno) {
+    public Telefone(String nrTelefone, Pessoa pessoa) {
         this.nrTelefone = nrTelefone;
-        this.aluno = aluno;
+        this.pessoa = pessoa;
     }
 }
