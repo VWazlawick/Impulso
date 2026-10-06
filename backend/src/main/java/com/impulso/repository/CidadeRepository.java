@@ -8,4 +8,10 @@ import java.util.List;
 public interface CidadeRepository extends JpaRepository<Cidade, Long> {
 
     List<Cidade> findByEstadoId(Long estadoId);
+
+    List<Cidade> findByNmCidade(String nmCidade);
+
+    List<Cidade> findByEstadoIdOrderByNmCidadeAsc(Long estadoId);
+
+
 }
