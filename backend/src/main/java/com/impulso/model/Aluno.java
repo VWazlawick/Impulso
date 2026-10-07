@@ -36,7 +36,10 @@ public class Aluno extends Pessoa{
     )
     private Set<Responsavel> responsaveis = new HashSet<>();
 
-    public Aluno(String nmPessoa, String cpf, String email){
+    public Aluno(String nmPessoa, String cpf, String email, LocalDate dtNascimento, TipoServicoEnum tpServico, Profissional profissional) {
         super(nmPessoa, cpf, email);
+        this.dtNascimento = dtNascimento;
+        this.tpServico = tpServico;
+        this.profissional = profissional;
     }
 }

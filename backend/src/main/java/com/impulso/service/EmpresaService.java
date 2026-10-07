@@ -5,8 +5,8 @@ import com.impulso.dto.EmpresaResponse;
 import com.impulso.exception.RecursoNaoEncontradoException;
 import com.impulso.model.Empresa;
 import com.impulso.repository.EmpresaRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EmpresaService {
