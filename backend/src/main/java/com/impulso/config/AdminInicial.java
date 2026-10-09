@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AdminInicial implements CommandLineRunner {
+
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final String email;
