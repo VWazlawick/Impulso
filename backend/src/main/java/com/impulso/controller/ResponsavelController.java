@@ -2,10 +2,12 @@ package com.impulso.controller;
 
 import com.impulso.dto.ResponsavelRequest;
 import com.impulso.dto.ResponsavelResponse;
+import com.impulso.security.UsuarioLogado;
 import com.impulso.service.ResponsavelService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,28 +23,19 @@ public class ResponsavelController {
         this.responsavelService = responsavelService;
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponsavelResponse cadastrar(@RequestBody @Valid ResponsavelRequest request){
-        return responsavelService.cadastrar(request);
-    }
-
     @GetMapping
-    public List<ResponsavelResponse> listar(@RequestParam(required = false) String nome){
-        if(nome == null || nome.isBlank()){
-            return responsavelService.listar();
-        }
-
-        return responsavelService.buscarPorNome(nome);
+    public List<ResponsavelResponse> listar(@RequestParam(required = false) String nome, @AuthenticationPrincipal Jwt jwt){
+        return responsavelService.listar(nome, UsuarioLogado.solicitante(jwt));
     }
 
     @GetMapping("/{id}")
-    public ResponsavelResponse buscarPorId(@PathVariable Long id){
-        return responsavelService.buscarPorId(id);
+    public ResponsavelResponse buscarPorId(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+        return responsavelService.buscarPorId(id, UsuarioLogado.solicitante(jwt));
     }
 
     @PutMapping("/{id}")
-    public ResponsavelResponse atualizar(@RequestBody @Valid ResponsavelRequest request, @PathVariable Long id){
-        return responsavelService.atualizar(id, request);
+    public ResponsavelResponse atualizar(@RequestBody @Valid ResponsavelRequest request,
+                                         @PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+        return responsavelService.atualizar(id, request, UsuarioLogado.solicitante(jwt));
     }
 }

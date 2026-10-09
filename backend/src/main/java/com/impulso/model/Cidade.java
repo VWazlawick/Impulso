@@ -18,12 +18,16 @@ public class Cidade {
     @Column(name = "nmCidade", nullable = false)
     private String nmCidade;
 
+    @Column(nullable = false, unique = true)
+    private Long cdIbge;
+
     @ManyToOne
     @JoinColumn(name = "estado_id", nullable = false)
     private Estado estado;
 
-    public Cidade(String nmCidade, Estado estado) {
+    public Cidade(String nmCidade, Long cdIbge, Estado estado) {
         this.nmCidade = nmCidade;
+        this.cdIbge = cdIbge;
         this.estado = estado;
     }
 }

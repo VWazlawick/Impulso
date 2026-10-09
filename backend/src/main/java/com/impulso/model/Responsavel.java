@@ -16,7 +16,11 @@ public class Responsavel extends Pessoa{
     @JoinColumn(name = "usuario_id", unique = true)
     private Usuario usuario;
 
-    public Responsavel(String nmPessoa, String cpf, String email){
-        super(nmPessoa, cpf, email);
+    @Column(nullable = false, length = 11)
+    private String nrTelefone;
+
+    public Responsavel(String nmPessoa, String nrTelefone) {
+        super(nmPessoa, null, null);
+        this.nrTelefone = nrTelefone;
     }
 }

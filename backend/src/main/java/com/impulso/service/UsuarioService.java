@@ -12,6 +12,7 @@ import com.impulso.model.Responsavel;
 import com.impulso.model.Usuario;
 import com.impulso.repository.PessoaRepository;
 import com.impulso.repository.UsuarioRepository;
+import com.impulso.security.Solicitante;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,20 +24,22 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PessoaRepository pessoaRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ResponsavelService responsavelService;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PessoaRepository pessoaRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PessoaRepository pessoaRepository, PasswordEncoder passwordEncoder, ResponsavelService responsavelService) {
         this.usuarioRepository = usuarioRepository;
         this.pessoaRepository = pessoaRepository;
         this.passwordEncoder = passwordEncoder;
+        this.responsavelService = responsavelService;
     }
 
     @Transactional
-    public UsuarioResponse criarAcesso(UsuarioRequest request, boolean solicitanteAdmin){
+    public UsuarioResponse criarAcesso(UsuarioRequest request, Solicitante solicitante){
         Pessoa pessoa = pessoaRepository.findById(request.pessoaId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa não encontrada!"));
 
         if(pessoa instanceof Profissional profissional){
-            if(!solicitanteAdmin){
+            if(!solicitante.admin()){
                 throw new AccessDeniedException("Somente administrador podem criar acessos de profissional!");
             }
             validarSemAcesso(profissional.getUsuario());
@@ -46,6 +49,7 @@ public class UsuarioService {
         }
 
         if(pessoa instanceof Responsavel responsavel){
+            responsavelService.buscarPermitido(responsavel.getId(), solicitante);
             validarSemAcesso(responsavel.getUsuario());
             Usuario usuario = salvarNovoUsuario(request, TipoUsuarioEnum.RESPONSAVEL);
             responsavel.setUsuario(usuario);

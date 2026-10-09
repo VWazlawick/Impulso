@@ -18,9 +18,11 @@ CREATE TABLE estado (
     pais_id    BIGINT       NOT NULL REFERENCES pais(id)
 );
 
+-- cd_ibge: código do município no IBGE, usado para casar o resultado da busca por CEP (ViaCEP).
 CREATE TABLE cidade (
     id         BIGSERIAL PRIMARY KEY,
     nm_cidade  VARCHAR(150) NOT NULL,
+    cd_ibge    BIGINT       NOT NULL UNIQUE,
     estado_id  BIGINT       NOT NULL REFERENCES estado(id)
 );
 
@@ -41,8 +43,8 @@ CREATE TABLE empresa (
 );
 
 -- Pessoa: dados comuns de profissional, responsável e aluno (herança JPA JOINED).
--- O id das tabelas filhas é o mesmo id da pessoa. CPF é opcional aqui porque o aluno
--- pode não ter; a obrigatoriedade para profissional e responsável é validada na aplicação.
+-- O id das tabelas filhas é o mesmo id da pessoa. CPF é opcional aqui porque aluno e
+-- responsável podem não ter; a obrigatoriedade para profissional é validada na aplicação.
 CREATE TABLE pessoa (
     id         BIGSERIAL PRIMARY KEY,
     nm_pessoa  VARCHAR(150) NOT NULL,
@@ -57,9 +59,11 @@ CREATE TABLE profissional (
     empresa_id  BIGINT NOT NULL REFERENCES empresa(id)
 );
 
+-- Responsável é um cadastro enxuto: nome (em pessoa) e um telefone.
 CREATE TABLE responsavel (
-    id          BIGINT PRIMARY KEY REFERENCES pessoa(id),
-    usuario_id  BIGINT UNIQUE REFERENCES usuario(id)
+    id             BIGINT PRIMARY KEY REFERENCES pessoa(id),
+    nr_telefone    VARCHAR(11)  NOT NULL,
+    usuario_id     BIGINT UNIQUE REFERENCES usuario(id)
 );
 
 CREATE TABLE aluno (
@@ -70,6 +74,7 @@ CREATE TABLE aluno (
     profissional_id  BIGINT NOT NULL REFERENCES profissional(id)
 );
 
+-- Endereços pertencem ao aluno (um ou mais, ex.: pais separados).
 CREATE TABLE endereco (
     id            BIGSERIAL PRIMARY KEY,
     rua           VARCHAR(150) NOT NULL,
@@ -78,13 +83,7 @@ CREATE TABLE endereco (
     cep           VARCHAR(8)   NOT NULL,
     complemento   VARCHAR(100),
     cidade_id     BIGINT NOT NULL REFERENCES cidade(id),
-    pessoa_id     BIGINT NOT NULL REFERENCES pessoa(id)
-);
-
-CREATE TABLE telefone (
-    id           BIGSERIAL PRIMARY KEY,
-    nr_telefone  VARCHAR(20) NOT NULL,
-    pessoa_id    BIGINT NOT NULL REFERENCES pessoa(id)
+    aluno_id      BIGINT NOT NULL REFERENCES aluno(id)
 );
 
 CREATE TABLE aluno_responsavel (
@@ -143,8 +142,7 @@ CREATE TABLE avaliacao_resumo (
 
 -- Índices de apoio às consultas mais comuns
 CREATE INDEX idx_aluno_profissional ON aluno(profissional_id);
-CREATE INDEX idx_endereco_pessoa ON endereco(pessoa_id);
-CREATE INDEX idx_telefone_pessoa ON telefone(pessoa_id);
+CREATE INDEX idx_endereco_aluno ON endereco(aluno_id);
 CREATE INDEX idx_avaliacao_aluno ON avaliacao(aluno_id);
 CREATE INDEX idx_resposta_avaliacao ON resposta(avaliacao_id);
 CREATE INDEX idx_avaliacao_resumo_avaliacao ON avaliacao_resumo(avaliacao_id);

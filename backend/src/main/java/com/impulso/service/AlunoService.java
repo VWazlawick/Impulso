@@ -1,9 +1,6 @@
 package com.impulso.service;
 
-import com.impulso.dto.AlunoRequest;
-import com.impulso.dto.AlunoResponse;
-import com.impulso.dto.ResponsavelResponse;
-import com.impulso.dto.TransferirAlunoRequest;
+import com.impulso.dto.*;
 import com.impulso.exception.ConflitoException;
 import com.impulso.exception.RecursoNaoEncontradoException;
 import com.impulso.exception.RequisicaoInvalidaException;
@@ -28,14 +25,14 @@ public class AlunoService {
     private final PessoaRepository pessoaRepository;
     private final ProfissionalRepository profissionalRepository;
     private final ResponsavelRepository responsavelRepository;
+    private final ResponsavelService responsavelService;
 
-    public AlunoService(AlunoRepository alunoRepository, PessoaRepository pessoaRepository,
-                        ProfissionalRepository profissionalRepository,
-                        ResponsavelRepository responsavelRepository) {
+    public AlunoService(AlunoRepository alunoRepository, PessoaRepository pessoaRepository, ProfissionalRepository profissionalRepository, ResponsavelRepository responsavelRepository, ResponsavelService responsavelService) {
         this.alunoRepository = alunoRepository;
         this.pessoaRepository = pessoaRepository;
         this.profissionalRepository = profissionalRepository;
         this.responsavelRepository = responsavelRepository;
+        this.responsavelService = responsavelService;
     }
 
     @Transactional
@@ -87,7 +84,7 @@ public class AlunoService {
     @Transactional
     public void vincularResponsavel(Long alunoId, Long responsavelId, Solicitante solicitante) {
         Aluno aluno = buscarAlunoPermitido(alunoId, solicitante);
-        Responsavel responsavel = buscarResponsavel(responsavelId);
+        Responsavel responsavel = responsavelService.buscarPermitido(responsavelId, solicitante);
 
         if (aluno.getResponsaveis().contains(responsavel)) {
             throw new ConflitoException("Responsável já vinculado a este aluno!");
@@ -116,6 +113,15 @@ public class AlunoService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado!"));
         aluno.setProfissional(buscarProfissional(request.profissionalId()));
         return AlunoResponse.de(aluno);
+    }
+
+    @Transactional
+    public ResponsavelResponse cadastrarResponsavel(Long alunoId, ResponsavelRequest request, Solicitante solicitante){
+        Aluno aluno = buscarAlunoPermitido(alunoId, solicitante);
+        Responsavel responsavel = responsavelRepository.save(
+                new Responsavel(request.nmPessoa(), request.nrTelefone()));
+        aluno.getResponsaveis().add(responsavel);
+        return ResponsavelResponse.de(responsavel);
     }
 
     private Profissional profissionalLogado(Long usuarioId) {

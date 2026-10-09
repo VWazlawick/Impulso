@@ -1,12 +1,10 @@
 package com.impulso.controller;
 
-import com.impulso.dto.AlunoRequest;
-import com.impulso.dto.AlunoResponse;
-import com.impulso.dto.ResponsavelResponse;
-import com.impulso.dto.TransferirAlunoRequest;
+import com.impulso.dto.*;
 import com.impulso.security.UsuarioLogado;
 import com.impulso.service.AlunoService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -71,4 +69,10 @@ public class AlunoController {
         alunoService.desvincularResponsavel(id, responsavelId, UsuarioLogado.solicitante(jwt));
     }
 
+    @PostMapping("/{id}/responsavel")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponsavelResponse cadastrarResponsavel(@PathVariable Long id, @RequestBody @Valid ResponsavelRequest request,
+                                                    @AuthenticationPrincipal Jwt jwt){
+        return alunoService.cadastrarResponsavel(id, request, UsuarioLogado.solicitante(jwt));
+    }
 }

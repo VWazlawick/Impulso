@@ -28,7 +28,7 @@ public class UsuarioController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL')")
     public UsuarioResponse cadastrar(@RequestBody @Valid UsuarioRequest request,
                                      @AuthenticationPrincipal Jwt jwt){
-        return usuarioService.criarAcesso(request, UsuarioLogado.isAdmin(jwt));
+        return usuarioService.criarAcesso(request, UsuarioLogado.solicitante(jwt));
     }
 
     @GetMapping("/me")

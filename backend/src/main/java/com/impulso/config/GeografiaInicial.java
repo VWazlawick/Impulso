@@ -65,7 +65,7 @@ public class GeografiaInicial implements CommandLineRunner {
         List<Cidade> cidades = new ArrayList<>();
         dados.forEach((ibgeEstado, municipios) -> {
             Estado estado = estadoRepository.save(new Estado(ibgeEstado.nmEstado(), ibgeEstado.sgEstado(), brasil));
-            municipios.forEach(m -> cidades.add(new Cidade(m.nmMunicipio(), estado)));
+            municipios.forEach(m -> cidades.add(new Cidade(m.nmMunicipio(), m.id(),estado)));
         });
 
         cidadeRepository.saveAll(cidades);

@@ -35,16 +35,16 @@ public class Endereco {
     private Cidade cidade;
 
     @ManyToOne
-    @JoinColumn(name = "pessoa_id", nullable = false)
-    private Pessoa pessoa;
+    @JoinColumn(name = "aluno_id", nullable = false)
+    private Aluno aluno;
 
-    public Endereco(String rua, String nrCasa, String bairro, String cep, String complemento, Cidade cidade, Pessoa pessoa) {
+    public Endereco(String rua, String nrCasa, String bairro, String cep, String complemento, Cidade cidade, Aluno aluno) {
         this.rua = rua;
         this.nrCasa = nrCasa;
         this.bairro = bairro;
         this.cep = cep;
         this.complemento = complemento;
         this.cidade = cidade;
-        this.pessoa = pessoa;
+        this.aluno = aluno;
     }
 }
