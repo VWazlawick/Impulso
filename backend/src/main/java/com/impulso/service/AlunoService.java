@@ -3,8 +3,10 @@ package com.impulso.service;
 import com.impulso.dto.AlunoRequest;
 import com.impulso.dto.AlunoResponse;
 import com.impulso.dto.ResponsavelResponse;
+import com.impulso.dto.TransferirAlunoRequest;
 import com.impulso.exception.ConflitoException;
 import com.impulso.exception.RecursoNaoEncontradoException;
+import com.impulso.exception.RequisicaoInvalidaException;
 import com.impulso.model.Aluno;
 import com.impulso.model.Profissional;
 import com.impulso.model.Responsavel;
@@ -12,6 +14,7 @@ import com.impulso.repository.AlunoRepository;
 import com.impulso.repository.PessoaRepository;
 import com.impulso.repository.ProfissionalRepository;
 import com.impulso.repository.ResponsavelRepository;
+import com.impulso.security.Solicitante;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,8 +39,8 @@ public class AlunoService {
     }
 
     @Transactional
-    public AlunoResponse cadastrar(AlunoRequest request, Long usuarioId) {
-        Profissional profissional = profissionalLogado(usuarioId);
+    public AlunoResponse cadastrar(AlunoRequest request, Solicitante solicitante) {
+        Profissional profissional = definirProfissionalDoCadastro(request, solicitante);
         if (request.cpf() != null && pessoaRepository.existsByCpf(request.cpf())) {
             throw new ConflitoException("CPF já cadastrado!");
         }
@@ -48,19 +51,27 @@ public class AlunoService {
     }
 
     @Transactional(readOnly = true)
-    public List<AlunoResponse> listar(Long usuarioId) {
-        Profissional profissional = profissionalLogado(usuarioId);
-        return alunoRepository.findByProfissionalIdOrderByNmPessoaAsc(profissional.getId()).stream().map(AlunoResponse::de).toList();
+    public List<AlunoResponse> listar(Solicitante solicitante) {
+
+        List<Aluno> alunos;
+        if(solicitante.admin()){
+            alunos = alunoRepository.findAllByOrderByNmPessoaAsc();
+        }
+        else{
+            Profissional profissional = profissionalLogado(solicitante.usuarioId());
+            alunos = alunoRepository.findByProfissionalIdOrderByNmPessoaAsc(profissional.getId());
+        }
+        return alunos.stream().map(AlunoResponse::de).toList();
     }
 
     @Transactional(readOnly = true)
-    public AlunoResponse buscarPorId(Long alunoId, Long usuarioId) {
-        return AlunoResponse.de(buscarAlunoDoProfissional(alunoId, usuarioId));
+    public AlunoResponse buscarPorId(Long alunoId, Solicitante solicitante) {
+        return AlunoResponse.de(buscarAlunoPermitido(alunoId, solicitante));
     }
 
     @Transactional
-    public AlunoResponse atualizarId(Long alunoId, Long usuarioId, AlunoRequest request) {
-        Aluno aluno = buscarAlunoDoProfissional(alunoId, usuarioId);
+    public AlunoResponse atualizarId(Long alunoId, Solicitante solicitante, AlunoRequest request) {
+        Aluno aluno = buscarAlunoPermitido(alunoId, solicitante);
         if (request.cpf() != null && pessoaRepository.existsByCpfAndIdNot(request.cpf(), alunoId)) {
             throw new ConflitoException("CPF já cadastrado!");
         }
@@ -74,8 +85,8 @@ public class AlunoService {
     }
 
     @Transactional
-    public void vincularResponsavel(Long alunoId, Long responsavelId, Long usuarioId) {
-        Aluno aluno = buscarAlunoDoProfissional(alunoId, usuarioId);
+    public void vincularResponsavel(Long alunoId, Long responsavelId, Solicitante solicitante) {
+        Aluno aluno = buscarAlunoPermitido(alunoId, solicitante);
         Responsavel responsavel = buscarResponsavel(responsavelId);
 
         if (aluno.getResponsaveis().contains(responsavel)) {
@@ -85,8 +96,8 @@ public class AlunoService {
     }
 
     @Transactional
-    public void desvincularResponsavel(Long alunoId, Long responsavelId, Long usuarioId) {
-        Aluno aluno = buscarAlunoDoProfissional(alunoId, usuarioId);
+    public void desvincularResponsavel(Long alunoId, Long responsavelId, Solicitante solicitante) {
+        Aluno aluno = buscarAlunoPermitido(alunoId, solicitante);
         Responsavel responsavel = buscarResponsavel(responsavelId);
 
         if (!aluno.getResponsaveis().remove(responsavel)) {
@@ -95,8 +106,16 @@ public class AlunoService {
     }
 
     @Transactional(readOnly = true)
-    public List<ResponsavelResponse> listarResponsaveis(Long alunoId, Long usuarioId) {
-        return buscarAlunoDoProfissional(alunoId, usuarioId).getResponsaveis().stream().map(ResponsavelResponse::de).toList();
+    public List<ResponsavelResponse> listarResponsaveis(Long alunoId, Solicitante solicitante) {
+        return buscarAlunoPermitido(alunoId, solicitante).getResponsaveis().stream().map(ResponsavelResponse::de).toList();
+    }
+
+    @Transactional
+    public AlunoResponse transferir(Long alunoId, TransferirAlunoRequest request){
+        Aluno aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado!"));
+        aluno.setProfissional(buscarProfissional(request.profissionalId()));
+        return AlunoResponse.de(aluno);
     }
 
     private Profissional profissionalLogado(Long usuarioId) {
@@ -104,14 +123,33 @@ public class AlunoService {
                 .orElseThrow(() -> new AccessDeniedException("Somente um profissional pode alterar o cadastro!"));
     }
 
-    private Aluno buscarAlunoDoProfissional(Long alunoId, Long usuarioId) {
-        Profissional profissional = profissionalLogado(usuarioId);
-        return alunoRepository.findByIdAndProfissionalId(alunoId, profissional.getId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado!"));
-    }
-
     private Responsavel buscarResponsavel(Long responsavelId) {
         return responsavelRepository.findById(responsavelId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Responsável não encontrado!"));
+    }
+
+    private Profissional buscarProfissional(Long profissionalId){
+        return profissionalRepository.findById(profissionalId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Profissional não encontrado!"));
+    }
+
+    private Profissional definirProfissionalDoCadastro(AlunoRequest request, Solicitante solicitante){
+        if(!solicitante.admin()){
+            return profissionalLogado(solicitante.usuarioId());
+        }
+        if(request.profissionalId() == null){
+            throw new RequisicaoInvalidaException("Informe o profissional responsável pelo Aluno!");
+        }
+        return buscarProfissional(request.profissionalId());
+    }
+
+    private Aluno buscarAlunoPermitido(Long alunoId, Solicitante solicitante){
+        if(solicitante.admin()){
+            return alunoRepository.findById(alunoId)
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado!"));
+        }
+        Profissional profissional = profissionalLogado(solicitante.usuarioId());
+        return alunoRepository.findByIdAndProfissionalId(alunoId, profissional.getId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado!"));
     }
 }

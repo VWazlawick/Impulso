@@ -12,6 +12,7 @@ import com.impulso.model.Responsavel;
 import com.impulso.model.Usuario;
 import com.impulso.repository.PessoaRepository;
 import com.impulso.repository.UsuarioRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,11 +31,14 @@ public class UsuarioService {
     }
 
     @Transactional
-    public UsuarioResponse criarAcesso(UsuarioRequest request){
+    public UsuarioResponse criarAcesso(UsuarioRequest request, boolean solicitanteAdmin){
         Pessoa pessoa = pessoaRepository.findById(request.pessoaId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa não encontrada!"));
 
         if(pessoa instanceof Profissional profissional){
+            if(!solicitanteAdmin){
+                throw new AccessDeniedException("Somente administrador podem criar acessos de profissional!");
+            }
             validarSemAcesso(profissional.getUsuario());
             Usuario usuario = salvarNovoUsuario(request, TipoUsuarioEnum.PROFISSIONAL);
             profissional.setUsuario(usuario);

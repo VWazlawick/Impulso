@@ -11,6 +11,7 @@ public record AlunoRequest(
         @Email(message = "Email inválido") String email,
         @NotNull(message = "Data de Nascimento obrigatória!")
         @Past(message = "A Data de Nascimento deve estar no passado!") LocalDate dtNascimento,
-        @NotNull(message = "O Tipo de Serviço é obrigatório!")TipoServicoEnum tpServico
+        @NotNull(message = "O Tipo de Serviço é obrigatório!")TipoServicoEnum tpServico,
+        Long profissionalId
         ) {
 }

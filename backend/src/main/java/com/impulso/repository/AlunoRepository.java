@@ -15,4 +15,6 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
     List<Aluno> findByProfissionalIdOrderByNmPessoaAsc(Long profissionalId);
 
     Optional<Aluno> findByIdAndProfissionalId(Long id, Long profissionalId);
+
+    List<Aluno> findAllByOrderByNmPessoaAsc();
 }
