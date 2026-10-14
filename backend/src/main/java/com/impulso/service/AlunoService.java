@@ -149,7 +149,7 @@ public class AlunoService {
         return buscarProfissional(request.profissionalId());
     }
 
-    private Aluno buscarAlunoPermitido(Long alunoId, Solicitante solicitante){
+    public Aluno buscarAlunoPermitido(Long alunoId, Solicitante solicitante){
         if(solicitante.admin()){
             return alunoRepository.findById(alunoId)
                     .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado!"));

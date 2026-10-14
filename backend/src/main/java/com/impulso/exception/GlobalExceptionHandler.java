@@ -51,4 +51,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> requisicaoInvalida(RequisicaoInvalidaException e){
         return ResponseEntity.badRequest().body(new ErroResponse(e.getMessage()));
     }
+
+    @ExceptionHandler(ServicoIndisponivelException.class)
+    public ResponseEntity<ErroResponse> servicoIndisponivel(ServicoIndisponivelException e){
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(new
+                ErroResponse(e.getMessage()));
+    }
 }
