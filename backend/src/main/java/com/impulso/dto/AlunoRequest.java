@@ -1,5 +1,6 @@
 package com.impulso.dto;
 
+import com.impulso.enums.SexoEnum;
 import com.impulso.enums.TipoServicoEnum;
 import jakarta.validation.constraints.*;
 
@@ -12,6 +13,8 @@ public record AlunoRequest(
         @NotNull(message = "Data de Nascimento obrigatória!")
         @Past(message = "A Data de Nascimento deve estar no passado!") LocalDate dtNascimento,
         @NotNull(message = "O Tipo de Serviço é obrigatório!")TipoServicoEnum tpServico,
-        Long profissionalId
+        Long profissionalId,
+        @NotNull(message = "O sexo do Aluno é obrigatório!")
+        SexoEnum sexo
         ) {
 }

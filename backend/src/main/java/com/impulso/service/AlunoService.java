@@ -43,7 +43,7 @@ public class AlunoService {
         }
 
         Aluno aluno = new Aluno(request.nmPessoa(), request.cpf(), request.email(), request.dtNascimento(),
-                request.tpServico(), profissional);
+                request.tpServico(), profissional, request.sexo());
         return AlunoResponse.de(alunoRepository.save(aluno));
     }
 
@@ -78,6 +78,7 @@ public class AlunoService {
         aluno.setEmail(request.email());
         aluno.setDtNascimento(request.dtNascimento());
         aluno.setTpServico(request.tpServico());
+        aluno.setSexo(request.sexo());
         return AlunoResponse.de(aluno);
     }
 

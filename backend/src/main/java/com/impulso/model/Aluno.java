@@ -1,5 +1,6 @@
 package com.impulso.model;
 
+import com.impulso.enums.SexoEnum;
 import com.impulso.enums.TipoServicoEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -24,6 +25,10 @@ public class Aluno extends Pessoa{
     @Enumerated(EnumType.STRING)
     private TipoServicoEnum tpServico;
 
+    @Column(name = "tpSexo", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private SexoEnum sexo;
+
     @ManyToOne
     @JoinColumn(name = "profissional_id", nullable = false)
     private Profissional profissional;
@@ -36,10 +41,11 @@ public class Aluno extends Pessoa{
     )
     private Set<Responsavel> responsaveis = new HashSet<>();
 
-    public Aluno(String nmPessoa, String cpf, String email, LocalDate dtNascimento, TipoServicoEnum tpServico, Profissional profissional) {
+    public Aluno(String nmPessoa, String cpf, String email, LocalDate dtNascimento, TipoServicoEnum tpServico, Profissional profissional, SexoEnum sexo) {
         super(nmPessoa, cpf, email);
         this.dtNascimento = dtNascimento;
         this.tpServico = tpServico;
         this.profissional = profissional;
+        this.sexo = sexo;
     }
 }
