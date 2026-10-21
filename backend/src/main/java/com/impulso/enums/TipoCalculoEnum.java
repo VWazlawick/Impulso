@@ -4,5 +4,14 @@ public enum TipoCalculoEnum {
     NENHUM,
     MAIOR_VALOR,
     MENOR_VALOR,
-    ESTAGIO
+    ESTAGIO;
+
+
+    public boolean aceita(TipoRespostaEnum tpResposta){
+        return switch (this){
+            case NENHUM -> true;
+            case MAIOR_VALOR, MENOR_VALOR -> tpResposta == TipoRespostaEnum.NUMERO;
+            case ESTAGIO -> tpResposta == TipoRespostaEnum.SIM_NAO_PARCIAL;
+        };
+    }
 }

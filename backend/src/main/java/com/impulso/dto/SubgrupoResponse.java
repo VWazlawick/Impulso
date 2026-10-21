@@ -9,7 +9,7 @@ public record SubgrupoResponse(Long id, String nmSubgrupo, TipoCalculoEnum tpCal
                                List<PerguntaResponse> perguntas) {
 
     public static SubgrupoResponse de(Subgrupo subgrupo){
-        return new SubgrupoResponse(subgrupo.getId(), subgrupo.getNmGrupo(), subgrupo.getTpCalculo(), subgrupo.getNrOrdem(),
+        return new SubgrupoResponse(subgrupo.getId(), subgrupo.getNmSubgrupo(), subgrupo.getTpCalculo(), subgrupo.getNrOrdem(),
                 subgrupo.getPerguntas().stream().map(PerguntaResponse::de).toList());
     }
 }
