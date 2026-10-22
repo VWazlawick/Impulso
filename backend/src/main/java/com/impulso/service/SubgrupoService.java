@@ -8,6 +8,7 @@ import com.impulso.exception.RequisicaoInvalidaException;
 import com.impulso.model.Grupo;
 import com.impulso.model.Pergunta;
 import com.impulso.model.Subgrupo;
+import com.impulso.repository.RespostaRepository;
 import com.impulso.repository.SubgrupoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +18,12 @@ public class SubgrupoService {
 
     private final SubgrupoRepository subgrupoRepository;
     private  final GrupoService grupoService;
+    private final RespostaRepository respostaRepository;
 
-    public SubgrupoService(SubgrupoRepository subgrupoRepository, GrupoService grupoService) {
+    public SubgrupoService(SubgrupoRepository subgrupoRepository, GrupoService grupoService, RespostaRepository respostaRepository) {
         this.subgrupoRepository = subgrupoRepository;
         this.grupoService = grupoService;
+        this.respostaRepository = respostaRepository;
     }
 
     @Transactional
@@ -33,6 +36,10 @@ public class SubgrupoService {
     @Transactional
     public SubgrupoResponse atualizar(Long id, SubgrupoRequest request){
         Subgrupo subgrupo = buscarEntidade(id);
+
+        if(request.tpCalculo() != subgrupo.getTpCalculo() && respostaRepository.existsByPerguntaId(id)){
+            throw new ConflitoException("O subgrupo já tem respostas registradas: o tipo de cálculo não pode ser trocado!");
+        }
 
         for(Pergunta pergunta : subgrupo.getPerguntas()){
             if (!request.tpCalculo().aceita(pergunta.getTpResposta())){
