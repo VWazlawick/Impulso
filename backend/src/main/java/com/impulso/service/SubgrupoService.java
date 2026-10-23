@@ -37,7 +37,7 @@ public class SubgrupoService {
     public SubgrupoResponse atualizar(Long id, SubgrupoRequest request){
         Subgrupo subgrupo = buscarEntidade(id);
 
-        if(request.tpCalculo() != subgrupo.getTpCalculo() && respostaRepository.existsByPerguntaId(id)){
+        if(request.tpCalculo() != subgrupo.getTpCalculo() && respostaRepository.existsByPerguntaSubgrupoId(id)){
             throw new ConflitoException("O subgrupo já tem respostas registradas: o tipo de cálculo não pode ser trocado!");
         }
 
