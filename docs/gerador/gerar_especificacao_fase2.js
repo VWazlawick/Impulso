@@ -14,12 +14,12 @@ const HEADER_BG = "1F3864";
 const SAIDA = process.argv[2] || path.join(__dirname, "..", "Especificacao_Detalhada_Fase2.docx");
 
 const entidades = [
-  ["Grupo", "nmGrupo, nrIdadeMin, nrIdadeMax; subgrupos (1:N)", "Modelo da ficha para uma faixa etária (em anos). Só o ADMIN cadastra. As faixas dos grupos não podem se sobrepor. Só é excluído se não tiver subgrupos nem avaliações."],
-  ["Subgrupo", "nmSubgrupo, tpCalculo, nrOrdem, grupo; perguntas (1:N)", "Um teste ou uma habilidade. O tpCalculo define o resultado e só muda se o grupo não tiver avaliações. Só é excluído se não tiver perguntas."],
-  ["Pergunta", "dsPergunta, tpResposta, dsUnidade, nrOrdem, subgrupo", "O tipo precisa combinar com o cálculo do subgrupo. Tipo e exclusão só mudam se a pergunta não tiver respostas."],
-  ["Avaliacao", "dtAvaliacao, aluno, profissional, grupo; respostas e resumos (1:N)", "A idade do aluno na data escolhe o grupo. O profissional gravado é o do aluno naquele momento. Pode ser editada; o grupo não muda na edição."],
+  ["Grupo", "nmGrupo, nrIdadeMin, nrIdadeMax; subgrupos (1:N)", "Modelo da ficha para uma faixa etária (em anos). Só o ADMIN cadastra. As faixas dos grupos não podem se sobrepor. Só é excluído sem subgrupos (um grupo com avaliações sempre tem subgrupos com respostas)."],
+  ["Subgrupo", "nmSubgrupo, tpCalculo, nrOrdem, grupo; perguntas (1:N)", "Um teste ou uma habilidade. O tpCalculo define o resultado e só pode ser trocado enquanto o subgrupo não tiver respostas (e se as perguntas continuarem compatíveis). Só é excluído sem perguntas. Nome e ordem podem mudar sempre."],
+  ["Pergunta", "dsPergunta, tpResposta, dsUnidade, nrOrdem, subgrupo", "O tipo precisa combinar com o cálculo do subgrupo. Com respostas registradas, não pode ser excluída nem trocar de tipo; texto, unidade e ordem podem ser corrigidos."],
+  ["Avaliacao", "dtAvaliacao, aluno, profissional, grupo; respostas e resumos (1:N)", "A idade do aluno na data escolhe o grupo. O profissional gravado é o do aluno naquele momento (mesmo quando o ADMIN registra). Pode ser corrigida: o grupo não muda, e a nova data precisa manter a idade dentro da faixa dele."],
   ["Resposta", "vlResposta (número) ou tpOpcao (SIM, NAO, PARCIAL), pergunta, avaliacao", "Uma por pergunta. A pergunta precisa ser do grupo da avaliação. Perguntas sem resposta são aceitas (teste não realizado)."],
-  ["AvaliacaoResumo", "vlResultado ou tpEstagio, subgrupo, avaliacao", "Calculado pelo sistema ao salvar e ao editar; nunca enviado pelo cliente."],
+  ["AvaliacaoResumo", "vlResultado ou tpEstagio, subgrupo, avaliacao", "Calculado pela CalculadoraResultado ao salvar e ao corrigir; nunca enviado pelo cliente. Só existe para subgrupos que receberam respostas."],
   ["Aluno (alteração)", "+ sexo (MASCULINO, FEMININO; coluna tp_sexo), obrigatório", "Usado pelas tabelas de referência do relatório (Fase 3)."],
 ];
 
@@ -57,16 +57,16 @@ const rotas = [
   ["GET", "/api/grupo/{id}", "ADMIN, PROFISSIONAL", "Estrutura completa: subgrupos > perguntas", "200 / 404"],
   ["POST", "/api/grupo", "ADMIN", "Cadastra grupo (faixa etária)", "201 / 400 / 409"],
   ["PUT", "/api/grupo/{id}", "ADMIN", "Edita grupo", "200 / 400 / 404 / 409"],
-  ["DELETE", "/api/grupo/{id}", "ADMIN", "Exclui grupo sem subgrupos e sem avaliações", "204 / 404 / 409"],
-  ["POST", "/api/grupo/{id}/subgrupo", "ADMIN", "Cadastra subgrupo", "201 / 400 / 404"],
+  ["DELETE", "/api/grupo/{id}", "ADMIN", "Exclui grupo sem subgrupos", "204 / 404 / 409"],
+  ["POST", "/api/grupo/{grupoId}/subgrupo", "ADMIN", "Cadastra subgrupo", "201 / 400 / 404"],
   ["PUT", "/api/subgrupo/{id}", "ADMIN", "Edita subgrupo", "200 / 400 / 404 / 409"],
   ["DELETE", "/api/subgrupo/{id}", "ADMIN", "Exclui subgrupo sem perguntas", "204 / 404 / 409"],
-  ["POST", "/api/subgrupo/{id}/pergunta", "ADMIN", "Cadastra pergunta", "201 / 400 / 404"],
+  ["POST", "/api/subgrupo/{subgrupoId}/pergunta", "ADMIN", "Cadastra pergunta", "201 / 400 / 404"],
   ["PUT", "/api/pergunta/{id}", "ADMIN", "Edita pergunta", "200 / 400 / 404 / 409"],
   ["DELETE", "/api/pergunta/{id}", "ADMIN", "Exclui pergunta sem respostas", "204 / 404 / 409"],
   ["GET", "/api/aluno/{alunoId}/avaliacao/ficha?dtAvaliacao=", "ADMIN, PROFISSIONAL", "Grupo da idade do aluno, com subgrupos e perguntas (data opcional, padrão hoje)", "200 / 400 / 404"],
   ["POST", "/api/aluno/{alunoId}/avaliacao", "ADMIN, PROFISSIONAL", "Registra a avaliação e calcula os resultados", "201 / 400 / 404"],
-  ["GET", "/api/aluno/{alunoId}/avaliacao", "ADMIN, PROFISSIONAL", "Lista as avaliações do aluno (mais recente primeiro)", "200 / 404"],
+  ["GET", "/api/aluno/{alunoId}/avaliacao", "ADMIN, PROFISSIONAL", "Lista resumida das avaliações do aluno (data, idade, grupo), da mais recente para a mais antiga", "200 / 404"],
   ["GET", "/api/aluno/{alunoId}/avaliacao/{id}", "ADMIN, PROFISSIONAL", "Avaliação com respostas e resultados", "200 / 404"],
   ["PUT", "/api/aluno/{alunoId}/avaliacao/{id}", "ADMIN, PROFISSIONAL", "Corrige data e respostas e recalcula", "200 / 400 / 404"],
   ["DELETE", "/api/aluno/{alunoId}/avaliacao/{id}", "ADMIN, PROFISSIONAL", "Exclui a avaliação", "204 / 404"],
@@ -76,7 +76,7 @@ const rotas = [
 const erros = [
   ["400", "Faixa etária inválida (mínima maior que a máxima); pergunta com tipo que não combina com o cálculo do subgrupo; avaliação sem nenhuma resposta; pergunta que não é do grupo da avaliação; resposta no formato errado para o tipo da pergunta; pergunta repetida; data que tira o aluno da faixa do grupo na edição", "{\"erro\": \"A pergunta 31 não pertence ao grupo desta avaliação!\"}"],
   ["404", "Grupo, subgrupo, pergunta ou avaliação inexistente; aluno de outro profissional; nenhum grupo atende a idade do aluno", "{\"erro\": \"Nenhum grupo atende a idade de 4 anos!\"}"],
-  ["409", "Faixa que se sobrepõe a outro grupo; exclusão ou troca de tipo/cálculo de estrutura já usada", "{\"erro\": \"A faixa etária se sobrepõe a outro grupo!\"}"],
+  ["409", "Faixa que se sobrepõe a outro grupo; excluir grupo com subgrupos ou subgrupo com perguntas; excluir ou trocar o tipo de uma pergunta respondida; trocar o cálculo de um subgrupo respondido", "{\"erro\": \"A pergunta já tem respostas registradas e não pode ser excluída!\"}"],
 ];
 
 const exemplos = [
@@ -116,16 +116,23 @@ const criterios = [
   ["RF08", "Edição recalcula", "avaliação com estágio MADURO", "o profissional troca um SIM por NÃO e outro por NÃO", "o estágio passa a INICIAL"],
   ["RC01", "Isolamento", "a avaliação é de um aluno do profissional A", "o profissional B tenta abri-la", "recebe 404"],
   ["RF05", "Estrutura em uso", "uma pergunta com respostas registradas", "o ADMIN tenta excluí-la", "recebe 409"],
+  ["RF05", "Correção de texto liberada", "uma pergunta com respostas registradas", "o ADMIN corrige só o texto dela", "recebe 200"],
+  ["RF05", "Cálculo travado", "um subgrupo com respostas registradas", "o ADMIN tenta trocar o cálculo dele", "recebe 409"],
+  ["RF08", "Resultado só do que foi feito", "uma avaliação com só uma tentativa do salto", "é registrada", "gera o resultado do salto e nenhum resultado para os subgrupos sem resposta"],
+  ["RF17", "Lista do aluno", "um aluno com duas avaliações", "o profissional lista as avaliações", "recebe a lista resumida, da mais recente para a mais antiga"],
+  ["RF17", "Correção recalcula sem duplicar", "uma avaliação registrada", "o profissional corrige os valores das mesmas perguntas", "recebe 200, os resultados são recalculados e cada pergunta continua com uma única resposta"],
+  ["RF17", "Correção com erro não altera nada", "uma avaliação registrada", "a correção traz uma pergunta de outro grupo", "recebe 400 e a avaliação continua como estava"],
+  ["RF17", "Nova data fora da faixa", "uma avaliação do Grupo 2 (6 a 7 anos)", "a correção muda a data para quando o aluno tinha 5 anos", "recebe 400"],
 ];
 
 const tarefas = [
   ["1", "Sexo do aluno: SexoEnum, Aluno.sexo (coluna tp_sexo), AlunoRequest e AlunoResponse", "Concluída"],
-  ["2", "Estrutura — entidades e repositórios: Grupo, Subgrupo, Pergunta, TipoCalculoEnum, TipoRespostaEnum (@OneToMany com mappedBy e @OrderBy)", "Pendente"],
-  ["3", "Estrutura — cadastro pelo ADMIN: DTOs, services e controllers, com as regras de faixa, compatibilidade e exclusão", "Pendente"],
-  ["4", "Avaliação — entidades e repositórios: Avaliacao, Resposta, AvaliacaoResumo, TipoOpcaoEnum, EstagioEnum (cascade e orphanRemoval)", "Pendente"],
-  ["5", "Ficha do aluno: idade na data escolhe o grupo", "Pendente"],
-  ["6", "Registrar avaliação: validações e cálculo dos resultados (classe CalculadoraResultado)", "Pendente"],
-  ["7", "Consultar, editar (recalcula) e excluir avaliação", "Pendente"],
+  ["2", "Estrutura — entidades e repositórios: Grupo, Subgrupo, Pergunta, TipoCalculoEnum, TipoRespostaEnum (@OneToMany com mappedBy e @OrderBy)", "Concluída"],
+  ["3", "Estrutura — cadastro pelo ADMIN: DTOs, services e controllers, com as regras de faixa, compatibilidade (TipoCalculoEnum.aceita) e exclusão", "Concluída"],
+  ["4", "Avaliação — entidades e repositórios: Avaliacao, Resposta, AvaliacaoResumo, TipoOpcaoEnum, EstagioEnum (cascade e orphanRemoval), e as travas da estrutura em uso", "Concluída"],
+  ["5", "Ficha do aluno: idade na data escolhe o grupo", "Concluída"],
+  ["6", "Registrar avaliação: validações e cálculo dos resultados (classe CalculadoraResultado)", "Concluída"],
+  ["7", "Consultar, corrigir (recalcula) e excluir avaliação", "Concluída"],
   ["8", "Testes automatizados dos critérios de aceite", "Adiada"],
 ];
 
@@ -203,7 +210,8 @@ function blocoCodigo(linhas) {
 }
 
 async function imagem(viz, dot, largura) {
-  const svg = viz.renderString(dot, { format: "svg" });
+  const svg = viz.renderString(dot, { format: "svg" })
+    .replace(/font-family="Helvetica,sans-Serif"/g, 'font-family="Arial"'); // Helvetica não existe no Windows; Arial tem as mesmas medidas
   const png = await sharp(Buffer.from(svg), { density: 200 }).png().toBuffer();
   const { width, height } = await sharp(png).metadata();
   return new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [
@@ -224,7 +232,7 @@ async function main() {
       children: [
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [new TextRun({ text: "Impulso", bold: true, size: 44, color: HEADER_BG })] }),
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 400 }, children: [new TextRun({ text: "Especificação Detalhada — Fase 2: Módulo de Avaliação", size: 30 })] }),
-        p("A Fase 2 transforma a ficha de avaliação física e motora em dados. O ADMIN monta a estrutura da ficha (grupo por faixa etária > subgrupo > pergunta); o profissional escolhe o aluno, o sistema usa a idade para escolher o grupo, e ao salvar as respostas calcula o resultado de cada subgrupo: a melhor tentativa ou o estágio motor. A ficha preenchida de um aluno é a Avaliacao."),
+        p("A Fase 2 transforma a ficha de avaliação física e motora em dados. O ADMIN monta a estrutura da ficha (grupo por faixa etária > subgrupo > pergunta); o profissional escolhe o aluno, o sistema usa a idade para escolher o grupo, e ao salvar as respostas calcula o resultado de cada subgrupo: a melhor tentativa ou o estágio motor. A ficha preenchida de um aluno é a Avaliacao. A fase está concluída; os testes automatizados (Tarefa 8) foram adiados."),
         p("Conteúdo das fichas: os textos reais podem ser licenciados. Eles são cadastrados pelo ADMIN na instância e ficam só no banco de dados, nunca no código nem no repositório. Os exemplos deste documento usam nomes genéricos e critérios fictícios."),
 
         h1("1. Modelo"),
@@ -241,6 +249,8 @@ async function main() {
         p("Os casos são avaliados nesta ordem. A última linha cobre uma combinação que a regra original não define; a decisão é provisória e fica isolada na CalculadoraResultado, para ser trocada facilmente se for confirmado outro estágio."),
         h2("Idade e grupo"),
         p("Idade = anos completos entre a data de nascimento e a data da avaliação (Period.between(...).getYears()). O grupo escolhido é aquele cuja faixa contém essa idade (como as faixas não se sobrepõem, há no máximo um). Na edição, o grupo da avaliação não muda; se a nova data tirar o aluno da faixa, a edição é recusada com 400."),
+        h2("Correção de uma avaliação"),
+        p("A correção substitui a data e a lista inteira de respostas e recalcula os resultados, reaproveitando as mesmas validações do registro. As respostas e os resultados antigos são apagados pelo orphanRemoval; antes de inserir os novos, o service força um flush, porque a tabela resposta tem UNIQUE (avaliacao_id, pergunta_id) e o Hibernate, por padrão, inseriria as respostas novas antes de apagar as antigas. Se qualquer resposta for inválida, a transação é desfeita e a avaliação continua como estava."),
 
         h1("3. Perfis e Permissões"),
         tabela(["Ação", "ADMIN", "PROFISSIONAL", "RESPONSÁVEL"], [4300, 1500, 1900, 1800], permissoes),
@@ -260,7 +270,7 @@ async function main() {
         tabela(["Código", "Quando acontece", "Exemplo de corpo"], [800, 5500, 3200], erros, { monoCols: [2], tamanho: 18 }),
 
         h1("8. Critérios de Aceite"),
-        p("Formato Dado / Quando / Então."),
+        p("Formato Dado / Quando / Então. Todos foram verificados em testes de ponta a ponta durante o desenvolvimento."),
         tabela(["Req.", "Cenário", "Dado", "Quando", "Então"], [800, 2000, 2300, 2200, 2200], criterios, { tamanho: 18 }),
 
         h1("9. Tarefas da Fase 2"),

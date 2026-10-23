@@ -110,7 +110,8 @@ function blocoCodigo(linhas) {
 
 async function main() {
   const viz = await instance();
-  const svg = viz.renderString(gerarDot(), { format: "svg" });
+  const svg = viz.renderString(gerarDot(), { format: "svg" })
+    .replace(/font-family="Helvetica,sans-Serif"/g, 'font-family="Arial"'); // Helvetica não existe no Windows; Arial tem as mesmas medidas
   const png = await sharp(Buffer.from(svg), { density: 220 }).png().toBuffer();
   const { width, height } = await sharp(png).metadata();
   const larguraImg = 620;
