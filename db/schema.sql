@@ -66,6 +66,8 @@ CREATE TABLE responsavel (
     usuario_id     BIGINT UNIQUE REFERENCES usuario(id)
 );
 
+-- Medidas do corpo (opcionais): peso em kg, estatura e cintura em cm. Guardam a medida mais
+-- recente; a avaliação mais nova do aluno atualiza esses valores (Fase 3).
 CREATE TABLE aluno (
     id               BIGINT PRIMARY KEY REFERENCES pessoa(id),
     dt_nascimento    DATE NOT NULL,
@@ -73,6 +75,9 @@ CREATE TABLE aluno (
         CHECK (tp_servico IN ('UMA_VEZ_SEMANA', 'DUAS_VEZES_SEMANA', 'DIARIA')),
     tp_sexo          VARCHAR(10)  NOT NULL
         CHECK (tp_sexo IN ('MASCULINO', 'FEMININO')),
+    vl_peso          NUMERIC(5,2),
+    vl_estatura      NUMERIC(5,2),
+    vl_cintura       NUMERIC(5,2),
     profissional_id  BIGINT NOT NULL REFERENCES profissional(id)
 );
 
@@ -130,9 +135,13 @@ CREATE TABLE pergunta (
 );
 
 -- O profissional gravado é o responsável pelo aluno na data da avaliação.
+-- As medidas são as daquele dia; IMC e RCE são calculados a partir delas, sem coluna própria.
 CREATE TABLE avaliacao (
     id               BIGSERIAL PRIMARY KEY,
     dt_avaliacao     DATE   NOT NULL,
+    vl_peso          NUMERIC(5,2),
+    vl_estatura      NUMERIC(5,2),
+    vl_cintura       NUMERIC(5,2),
     aluno_id         BIGINT NOT NULL REFERENCES aluno(id),
     profissional_id  BIGINT NOT NULL REFERENCES profissional(id),
     grupo_id         BIGINT NOT NULL REFERENCES grupo(id)
@@ -160,10 +169,32 @@ CREATE TABLE avaliacao_resumo (
     UNIQUE (avaliacao_id, subgrupo_id)
 );
 
+-- Classificação (Fase 3)
+-- Faixas das tabelas de referência, cadastradas pelo ADMIN (o conteúdo pode ser licenciado).
+-- Cada linha diz: "a partir de vl_inicio, o resultado é ds_classificacao" para um sexo e uma
+-- faixa de idade. O resultado fica com a faixa de maior vl_inicio que não passa do valor.
+-- tp_indicador SUBGRUPO usa o resultado do subgrupo (só MAIOR_VALOR/MENOR_VALOR); IMC e RCE
+-- não têm subgrupo.
+CREATE TABLE classificacao (
+    id                BIGSERIAL PRIMARY KEY,
+    tp_indicador      VARCHAR(10)  NOT NULL
+        CHECK (tp_indicador IN ('SUBGRUPO', 'IMC', 'RCE')),
+    subgrupo_id       BIGINT REFERENCES subgrupo(id),
+    tp_sexo           VARCHAR(10)  NOT NULL
+        CHECK (tp_sexo IN ('MASCULINO', 'FEMININO')),
+    nr_idade_min      INT          NOT NULL,
+    nr_idade_max      INT          NOT NULL,
+    vl_inicio         NUMERIC(8,2) NOT NULL,
+    ds_classificacao  VARCHAR(30)  NOT NULL,
+    CHECK (nr_idade_min >= 0 AND nr_idade_min <= nr_idade_max),
+    CHECK ((tp_indicador = 'SUBGRUPO') = (subgrupo_id IS NOT NULL))
+);
+
 -- Índices de apoio às consultas mais comuns
 CREATE INDEX idx_aluno_profissional ON aluno(profissional_id);
 CREATE INDEX idx_endereco_aluno ON endereco(aluno_id);
 CREATE INDEX idx_subgrupo_grupo ON subgrupo(grupo_id);
 CREATE INDEX idx_pergunta_subgrupo ON pergunta(subgrupo_id);
 CREATE INDEX idx_avaliacao_aluno ON avaliacao(aluno_id);
+CREATE INDEX idx_classificacao_subgrupo ON classificacao(subgrupo_id);
 -- resposta e avaliacao_resumo já ganham índice por avaliacao_id pelos UNIQUE (avaliacao_id, ...).
