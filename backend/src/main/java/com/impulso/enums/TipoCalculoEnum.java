@@ -14,4 +14,8 @@ public enum TipoCalculoEnum {
             case ESTAGIO -> tpResposta == TipoRespostaEnum.SIM_NAO_PARCIAL;
         };
     }
+
+    public boolean resultadoNumerico(){
+        return this == MAIOR_VALOR || this == MENOR_VALOR;
+    }
 }

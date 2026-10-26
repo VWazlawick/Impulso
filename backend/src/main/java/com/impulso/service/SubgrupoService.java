@@ -8,6 +8,7 @@ import com.impulso.exception.RequisicaoInvalidaException;
 import com.impulso.model.Grupo;
 import com.impulso.model.Pergunta;
 import com.impulso.model.Subgrupo;
+import com.impulso.repository.ClassificacaoRepository;
 import com.impulso.repository.RespostaRepository;
 import com.impulso.repository.SubgrupoRepository;
 import org.springframework.stereotype.Service;
@@ -19,11 +20,13 @@ public class SubgrupoService {
     private final SubgrupoRepository subgrupoRepository;
     private  final GrupoService grupoService;
     private final RespostaRepository respostaRepository;
+    private final ClassificacaoRepository classificacaoRepository;
 
-    public SubgrupoService(SubgrupoRepository subgrupoRepository, GrupoService grupoService, RespostaRepository respostaRepository) {
+    public SubgrupoService(SubgrupoRepository subgrupoRepository, GrupoService grupoService, RespostaRepository respostaRepository, ClassificacaoRepository classificacaoRepository) {
         this.subgrupoRepository = subgrupoRepository;
         this.grupoService = grupoService;
         this.respostaRepository = respostaRepository;
+        this.classificacaoRepository = classificacaoRepository;
     }
 
     @Transactional
@@ -60,6 +63,10 @@ public class SubgrupoService {
         Subgrupo subgrupo = buscarEntidade(id);
         if(!subgrupo.getPerguntas().isEmpty()){
             throw new ConflitoException("Exclua as perguntas antes de excluir o subgrupo!");
+        }
+
+        if(classificacaoRepository.existsBySubgrupoId(id)){
+            throw new ConflitoException("Exclua as classificações antes de excluir o subgrupo!");
         }
         subgrupoRepository.delete(subgrupo);
     }
