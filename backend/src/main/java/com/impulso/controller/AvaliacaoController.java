@@ -42,12 +42,14 @@ public class AvaliacaoController {
         return avaliacaoService.registrar(alunoId, request, UsuarioLogado.solicitante(jwt));
     }
 
-    @GetMapping
+    @GetMapping@PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'RESPONSAVEL')")
+
     public List<AvaliacaoListaResponse> listar(@PathVariable Long alunoId, @AuthenticationPrincipal Jwt jwt){
         return avaliacaoService.listar(alunoId, UsuarioLogado.solicitante(jwt));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'RESPONSAVEL')")
     public AvaliacaoResponse buscarPorId(@PathVariable Long alunoId, @PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
         return avaliacaoService.buscarPorId(alunoId, id, UsuarioLogado.solicitante(jwt));
     }

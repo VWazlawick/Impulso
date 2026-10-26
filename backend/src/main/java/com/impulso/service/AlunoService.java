@@ -44,6 +44,10 @@ public class AlunoService {
 
         Aluno aluno = new Aluno(request.nmPessoa(), request.cpf(), request.email(), request.dtNascimento(),
                 request.tpServico(), profissional, request.sexo());
+
+        aluno.setVlPeso(request.vlPeso());
+        aluno.setVlEstatura(request.vlEstatura());
+        aluno.setVlCintura(request.vlCintura());
         return AlunoResponse.de(alunoRepository.save(aluno));
     }
 
@@ -53,6 +57,9 @@ public class AlunoService {
         List<Aluno> alunos;
         if(solicitante.admin()){
             alunos = alunoRepository.findAllByOrderByNmPessoaAsc();
+        }
+        else if(solicitante.responsavel()){
+            alunos = alunoRepository.findByResponsaveisUsuarioIdOrderByNmPessoaAsc(solicitante.usuarioId());
         }
         else{
             Profissional profissional = profissionalLogado(solicitante.usuarioId());
@@ -79,6 +86,9 @@ public class AlunoService {
         aluno.setDtNascimento(request.dtNascimento());
         aluno.setTpServico(request.tpServico());
         aluno.setSexo(request.sexo());
+        aluno.setVlPeso(request.vlPeso());
+        aluno.setVlEstatura(request.vlEstatura());
+        aluno.setVlCintura(request.vlCintura());
         return AlunoResponse.de(aluno);
     }
 
@@ -153,6 +163,10 @@ public class AlunoService {
     public Aluno buscarAlunoPermitido(Long alunoId, Solicitante solicitante){
         if(solicitante.admin()){
             return alunoRepository.findById(alunoId)
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado!"));
+        }
+        if(solicitante.responsavel()){
+            return alunoRepository.findByIdAndResponsaveisUsuarioId(alunoId, solicitante.usuarioId())
                     .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado!"));
         }
         Profissional profissional = profissionalLogado(solicitante.usuarioId());

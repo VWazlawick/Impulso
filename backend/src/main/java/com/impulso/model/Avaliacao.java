@@ -5,7 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +38,15 @@ public class Avaliacao {
     @JoinColumn(name = "grupo_id", nullable = false)
     private Grupo grupo;
 
+    @Column(precision = 5, scale = 2)
+    private BigDecimal vlPeso;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal vlEstatura;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal vlCintura;
+
     @OneToMany(mappedBy = "avaliacao", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Resposta> respostas = new ArrayList<>();
 
@@ -47,5 +59,24 @@ public class Avaliacao {
         this.aluno = aluno;
         this.profissional = profissional;
         this.grupo = grupo;
+    }
+
+    public BigDecimal calcularImc(){
+        if(vlPeso == null || vlEstatura == null){
+            return null;
+        }
+        BigDecimal metros = vlEstatura.divide(new BigDecimal("100"));
+        return vlPeso.divide(metros.multiply(metros), 2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal calcularRce(){
+        if(vlCintura == null || vlEstatura == null){
+            return null;
+        }
+        return vlCintura.divide(vlEstatura, 2, RoundingMode.HALF_UP);
+    }
+
+    public int calcularIdade(){
+        return Period.between(aluno.getDtNascimento(), dtAvaliacao).getYears();
     }
 }

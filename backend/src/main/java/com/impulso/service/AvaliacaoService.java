@@ -49,9 +49,12 @@ public class AvaliacaoService {
         Grupo grupo = buscarGrupoPorIdade(idade);
 
         Avaliacao avaliacao = new Avaliacao(request.dtAvaliacao(), aluno, aluno.getProfissional(), grupo);
-
+        preencherMedidas(avaliacao, request);
         preencherResposta(avaliacao, request.respostas());
-        return AvaliacaoResponse.de(avaliacaoRepository.save(avaliacao));
+        avaliacaoRepository.save(avaliacao);
+        atualizarMedidas(avaliacao);
+
+        return AvaliacaoResponse.de(avaliacao);
     }
 
     @Transactional(readOnly = true)
@@ -80,10 +83,14 @@ public class AvaliacaoService {
         }
 
         avaliacao.setDtAvaliacao(request.dtAvaliacao());
+        preencherMedidas(avaliacao,request);
+
         avaliacao.getResumos().clear();
         avaliacao.getRespostas().clear();
         avaliacaoRepository.flush();
         preencherResposta(avaliacao, request.respostas());
+        atualizarMedidas(avaliacao);
+
         return AvaliacaoResponse.de((avaliacao));
     }
 
@@ -151,5 +158,28 @@ public class AvaliacaoService {
         alunoService.buscarAlunoPermitido(alunoId, solicitante);
         return avaliacaoRepository.findByIdAndAlunoId(id, alunoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Avaliação não encontrada!"));
+    }
+
+    private void preencherMedidas(Avaliacao avaliacao, AvaliacaoRequest request){
+        avaliacao.setVlPeso(request.vlPeso());
+        avaliacao.setVlEstatura(request.vlEstatura());
+        avaliacao.setVlCintura(request.vlCintura());
+    }
+
+    private void atualizarMedidas(Avaliacao avaliacao){
+        Aluno aluno = avaliacao.getAluno();
+
+        if(avaliacaoRepository.existsByAlunoIdAndDtAvaliacaoAfter(aluno.getId(), avaliacao.getDtAvaliacao())){
+            return;
+        }
+        if(avaliacao.getVlPeso() != null){
+            aluno.setVlPeso(avaliacao.getVlPeso());
+        }
+        if(avaliacao.getVlEstatura() != null){
+            aluno.setVlEstatura(avaliacao.getVlEstatura());
+        }
+        if(avaliacao.getVlCintura() != null){
+            aluno.setVlCintura(avaliacao.getVlCintura());
+        }
     }
 }

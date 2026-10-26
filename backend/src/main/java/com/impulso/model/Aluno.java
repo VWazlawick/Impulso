@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,6 +29,15 @@ public class Aluno extends Pessoa{
     @Column(name = "tpSexo", nullable = false)
     @Enumerated(EnumType.STRING)
     private SexoEnum sexo;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal vlPeso;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal vlEstatura;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal vlCintura;
 
     @ManyToOne
     @JoinColumn(name = "profissional_id", nullable = false)

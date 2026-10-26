@@ -31,11 +31,13 @@ public class AlunoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'RESPONSAVEL')")
     public List<AlunoResponse> listar(@AuthenticationPrincipal Jwt jwt){
         return alunoService.listar(UsuarioLogado.solicitante(jwt));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'RESPONSAVEL')")
     public AlunoResponse buscarPorId(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
         return alunoService.buscarPorId(id, UsuarioLogado.solicitante(jwt));
     }

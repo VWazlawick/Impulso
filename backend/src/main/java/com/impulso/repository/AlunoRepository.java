@@ -19,4 +19,8 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
     List<Aluno> findAllByOrderByNmPessoaAsc();
 
     boolean existsByResponsaveisIdAndProfissionalUsuarioId(Long responsavelId, Long usuarioid);
+
+    List<Aluno> findByResponsaveisUsuarioIdOrderByNmPessoaAsc(Long usuarioId);
+
+    Optional<Aluno> findByIdAndResponsaveisUsuarioId(Long id, Long usuarioId);
 }

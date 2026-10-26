@@ -15,7 +15,11 @@ public final class UsuarioLogado {
         return jwt.getClaimAsStringList("roles").contains("ADMIN");
     }
 
+    public static boolean isResponsavel(Jwt jwt){
+        return jwt.getClaimAsStringList("roles").contains("RESPONSAVEL");
+    }
+
     public static Solicitante solicitante(Jwt jwt){
-        return new Solicitante(id(jwt), isAdmin(jwt));
+        return new Solicitante(id(jwt), isAdmin(jwt),isResponsavel(jwt));
     }
 }
