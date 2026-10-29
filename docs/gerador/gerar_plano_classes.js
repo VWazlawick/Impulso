@@ -28,7 +28,7 @@ const cadastros = {
       ["TipoUsuarioEnum", [["ADMIN", ""], ["PROFISSIONAL", ""], ["RESPONSAVEL", ""]], "enumeration"],
     ]},
     { nome: "Aluno", cor: "#FFF2CC", classes: [
-      ["Aluno", [["dtNascimento", "LocalDate"], ["tpServico", "TipoServicoEnum"], ["sexo", "SexoEnum"], ["profissional", "Profissional"], ["responsaveis", "Set<Responsavel>"]]],
+      ["Aluno", [["dtNascimento", "LocalDate"], ["tpServico", "TipoServicoEnum"], ["sexo", "SexoEnum"], ["vlPeso", "BigDecimal"], ["vlEstatura", "BigDecimal"], ["vlCintura", "BigDecimal"], ["profissional", "Profissional"], ["responsaveis", "Set<Responsavel>"]]],
       ["Endereco", [["id", "Long"], ["rua", "String"], ["nrCasa", "String"], ["bairro", "String"], ["cep", "String"], ["complemento", "String"], ["cidade", "Cidade"], ["aluno", "Aluno"]]],
       ["TipoServicoEnum", [["UMA_VEZ_SEMANA", ""], ["DUAS_VEZES_SEMANA", ""], ["DIARIA", ""]], "enumeration"],
       ["SexoEnum", [["MASCULINO", ""], ["FEMININO", ""]], "enumeration"],
@@ -46,22 +46,26 @@ const cadastros = {
   splines: "spline",
 };
 
-// Diagrama 2: avaliação (Fase 2)
+// Diagrama 2: avaliação e classificação (Fases 2 e 3)
 const avaliacao = {
   grupos: [
     { nome: "Estrutura da ficha (cadastrada pelo ADMIN)", cor: "#DDEBF7", classes: [
       ["Grupo", [["id", "Long"], ["nmGrupo", "String"], ["nrIdadeMin", "Integer"], ["nrIdadeMax", "Integer"], ["subgrupos", "List<Subgrupo>"]]],
       ["Subgrupo", [["id", "Long"], ["nmSubgrupo", "String"], ["tpCalculo", "TipoCalculoEnum"], ["nrOrdem", "Integer"], ["grupo", "Grupo"], ["perguntas", "List<Pergunta>"]]],
       ["Pergunta", [["id", "Long"], ["dsPergunta", "String"], ["tpResposta", "TipoRespostaEnum"], ["dsUnidade", "String"], ["nrOrdem", "Integer"], ["subgrupo", "Subgrupo"]]],
-      ["TipoCalculoEnum", [["NENHUM", ""], ["MAIOR_VALOR", ""], ["MENOR_VALOR", ""], ["ESTAGIO", ""], ["aceita(TipoRespostaEnum)", "boolean"]], "enumeration"],
+      ["TipoCalculoEnum", [["NENHUM", ""], ["MAIOR_VALOR", ""], ["MENOR_VALOR", ""], ["ESTAGIO", ""], ["aceita(TipoRespostaEnum)", "boolean"], ["resultadoNumerico()", "boolean"]], "enumeration"],
       ["TipoRespostaEnum", [["NUMERO", ""], ["SIM_NAO_PARCIAL", ""]], "enumeration"],
     ]},
     { nome: "Avaliação (registrada pelo profissional)", cor: "#E2EFDA", classes: [
-      ["Avaliacao", [["id", "Long"], ["dtAvaliacao", "LocalDate"], ["aluno", "Aluno"], ["profissional", "Profissional"], ["grupo", "Grupo"], ["respostas", "List<Resposta>"], ["resumos", "List<AvaliacaoResumo>"]]],
+      ["Avaliacao", [["id", "Long"], ["dtAvaliacao", "LocalDate"], ["vlPeso", "BigDecimal"], ["vlEstatura", "BigDecimal"], ["vlCintura", "BigDecimal"], ["aluno", "Aluno"], ["profissional", "Profissional"], ["grupo", "Grupo"], ["respostas", "List<Resposta>"], ["resumos", "List<AvaliacaoResumo>"], ["calcularIdade()", "int"], ["calcularImc()", "BigDecimal"], ["calcularRce()", "BigDecimal"]]],
       ["Resposta", [["id", "Long"], ["vlResposta", "BigDecimal"], ["tpOpcao", "TipoOpcaoEnum"], ["avaliacao", "Avaliacao"], ["pergunta", "Pergunta"]]],
       ["AvaliacaoResumo", [["id", "Long"], ["vlResultado", "BigDecimal"], ["tpEstagio", "EstagioEnum"], ["avaliacao", "Avaliacao"], ["subgrupo", "Subgrupo"]]],
       ["TipoOpcaoEnum", [["SIM", ""], ["NAO", ""], ["PARCIAL", ""]], "enumeration"],
       ["EstagioEnum", [["INICIAL", ""], ["ELEMENTAR", ""], ["MADURO", ""]], "enumeration"],
+    ]},
+    { nome: "Classificação (cadastrada pelo ADMIN)", cor: "#EAE0F5", classes: [
+      ["Classificacao", [["id", "Long"], ["tpIndicador", "TipoIndicadorEnum"], ["subgrupo", "Subgrupo"], ["tpSexo", "SexoEnum"], ["nrIdadeMin", "Integer"], ["nrIdadeMax", "Integer"], ["vlInicio", "BigDecimal"], ["dsClassificacao", "String"]]],
+      ["TipoIndicadorEnum", [["SUBGRUPO", ""], ["IMC", ""], ["RCE", ""]], "enumeration"],
     ]},
     { nome: "Cadastros (ver diagrama 1)", cor: "#FFF2CC", classes: [
       ["Aluno", [["...", ""]]],
@@ -73,20 +77,22 @@ const avaliacao = {
     ["Grupo", "Subgrupo", "1", "N"], ["Subgrupo", "Pergunta", "1", "N"],
     ["Grupo", "Avaliacao", "1", "N"], ["Aluno", "Avaliacao", "1", "N"], ["Profissional", "Avaliacao", "1", "N"],
     ["Pergunta", "Resposta", "1", "N"], ["Subgrupo", "AvaliacaoResumo", "1", "N"],
+    ["Subgrupo", "Classificacao", "0..1", "N"],
   ],
   composicoes: [["Avaliacao", "Resposta", "1", "N"], ["Avaliacao", "AvaliacaoResumo", "1", "N"]],
 };
 
 const camadas = [
-  ["model", "Entidades JPA. Cadastros: Pessoa (abstrata, herança JOINED), Profissional, Responsavel, Aluno, Usuario, Empresa, Endereco, Pais, Estado, Cidade. Avaliação: Grupo, Subgrupo, Pergunta, Avaliacao, Resposta, AvaliacaoResumo. Lombok: @Getter, @Setter e @NoArgsConstructor (nunca @Data em entidades)."],
-  ["enums", "TipoUsuarioEnum, TipoServicoEnum, SexoEnum, TipoCalculoEnum (com o método aceita, que diz se um tipo de pergunta combina com o cálculo), TipoRespostaEnum, TipoOpcaoEnum e EstagioEnum. Gravados como texto com @Enumerated(EnumType.STRING)."],
-  ["repository", "Interfaces Spring Data JPA. Consultas derivadas pelo nome do método (findByProfissionalIdOrderByNmPessoaAsc, existsByPerguntaSubgrupoId...) e @Query em JPQL quando o nome ficaria ilegível (existeSobreposicao e buscarPorIdade no GrupoRepository, buscarDoProfissional no ResponsavelRepository). AvaliacaoResumo não tem repositório: é salvo e apagado junto com a Avaliacao."],
-  ["dto", "Records por direção: XxxRequest (entrada, com Bean Validation, inclusive em listas com List<@Valid ...>) e XxxResponse (saída, com método estático de(...)). Versões resumida e detalhada quando faz sentido: GrupoResponse e GrupoDetalheResponse (árvore subgrupos > perguntas), AvaliacaoListaResponse e AvaliacaoResponse. FichaResponse reaproveita o GrupoDetalheResponse."],
-  ["service", "Regras de negócio: EmpresaService, GeografiaService, ProfissionalService, ResponsavelService, UsuarioService, AlunoService, EnderecoService, CepService, AuthService, GrupoService, SubgrupoService, PerguntaService e AvaliacaoService. CalculadoraResultado (@Component) concentra as regras de cálculo: melhor tentativa e estágio motor. @Transactional nos métodos que alteram dados e @Transactional(readOnly = true) nas consultas."],
-  ["controller", "Endpoints REST, sem regra de negócio: AuthController, GeografiaController, EmpresaController, ProfissionalController, ResponsavelController, UsuarioController, AlunoController, EnderecoController, CepController, GrupoController, SubgrupoController, PerguntaController e AvaliacaoController. Permissões com @PreAuthorize na classe e, quando precisa, no método."],
-  ["security", "SecurityConfig (rotas públicas, stateless, resource server JWT, BCrypt, @EnableMethodSecurity), TokenService (gera o JWT HS256 no login), UserDetailsServiceImpl (busca o usuário pelo e-mail e bloqueia inativos), UsuarioLogado (lê usuarioId e perfil do token) e o record Solicitante (quem faz a requisição)."],
+  ["model", "Entidades JPA. Cadastros: Pessoa (abstrata, herança JOINED), Profissional, Responsavel, Aluno, Usuario, Empresa, Endereco, Pais, Estado, Cidade. Avaliação: Grupo, Subgrupo, Pergunta, Avaliacao (com calcularIdade, calcularImc e calcularRce), Resposta, AvaliacaoResumo. Classificação: Classificacao (faixas das tabelas de referência). Lombok: @Getter, @Setter e @NoArgsConstructor (nunca @Data em entidades)."],
+  ["enums", "TipoUsuarioEnum, TipoServicoEnum, SexoEnum, TipoCalculoEnum (com o método aceita, que diz se um tipo de pergunta combina com o cálculo, e o resultadoNumerico), TipoRespostaEnum, TipoOpcaoEnum, EstagioEnum e TipoIndicadorEnum (SUBGRUPO, IMC ou RCE). Gravados como texto com @Enumerated(EnumType.STRING)."],
+  ["repository", "Interfaces Spring Data JPA. Consultas derivadas pelo nome do método (findByProfissionalIdOrderByNmPessoaAsc, existsByPerguntaSubgrupoId...) e @Query em JPQL quando o nome ficaria ilegível (existeSobreposicao e buscarPorIdade no GrupoRepository, buscarDoProfissional no ResponsavelRepository). AvaliacaoResumo não tem repositório: é salvo e apagado junto com a Avaliacao. No ClassificacaoRepository, uma única consulta derivada serve para listar, achar faixas repetidas e classificar; passar o subgrupo null gera subgrupo is null, que encontra as faixas de IMC e RCE."],
+  ["dto", "Records por direção: XxxRequest (entrada, com Bean Validation, inclusive em listas com List<@Valid ...>) e XxxResponse (saída, com método estático de(...)). Versões resumida e detalhada quando faz sentido: GrupoResponse e GrupoDetalheResponse (árvore subgrupos > perguntas), AvaliacaoListaResponse e AvaliacaoResponse. FichaResponse reaproveita o GrupoDetalheResponse. MedidasResponse agrupa as medidas, o IMC, a RCE e as classificações, e os records Evolucao* montam o relatório. Os construtores do AlunoRequest e do AvaliacaoRequest convertem estatura e cintura em metros para centímetros antes da validação."],
+  ["service", "Regras de negócio: EmpresaService, GeografiaService, ProfissionalService, ResponsavelService, UsuarioService, AlunoService, EnderecoService, CepService, AuthService, GrupoService, SubgrupoService, PerguntaService, AvaliacaoService, EvolucaoService e ClassificacaoService (cadastro das faixas e cálculo da classificação). CalculadoraResultado (@Component) concentra as regras de cálculo: melhor tentativa e estágio motor. @Transactional nos métodos que alteram dados e @Transactional(readOnly = true) nas consultas."],
+  ["controller", "Endpoints REST, sem regra de negócio: AuthController, GeografiaController, EmpresaController, ProfissionalController, ResponsavelController, UsuarioController, AlunoController, EnderecoController, CepController, GrupoController, SubgrupoController, PerguntaController, AvaliacaoController, EvolucaoController e ClassificacaoController. Permissões com @PreAuthorize na classe e, quando precisa, no método, como nas consultas de aluno e de avaliação liberadas ao RESPONSAVEL."],
+  ["security", "SecurityConfig (rotas públicas, stateless, resource server JWT, BCrypt, @EnableMethodSecurity), TokenService (gera o JWT HS256 no login), UserDetailsServiceImpl (busca o usuário pelo e-mail e bloqueia inativos), UsuarioLogado (lê usuarioId e perfil do token) e o record Solicitante (quem faz a requisição: usuarioId e se é ADMIN ou RESPONSAVEL)."],
   ["exception", "RecursoNaoEncontradoException (404), ConflitoException (409), RequisicaoInvalidaException (400), ServicoIndisponivelException (503) e GlobalExceptionHandler (@RestControllerAdvice), que padroniza as respostas de erro, incluindo 401 de credenciais, 403 de acesso negado e 400 de validação por campo."],
   ["integracao", "Clientes de APIs externas com RestClient: IbgeClient (estados e municípios, usado na carga inicial) e ViaCepClient (busca de CEP, com timeouts de conexão e leitura). Os records IbgeEstado, IbgeMunicipio e ViaCepEndereco traduzem o JSON externo com @JsonProperty."],
+  ["utils", "ConversorMedida: converte para centímetros a estatura e a cintura digitadas em metros (valor abaixo de 3); usado pelos records de requisição."],
   ["config", "AdminInicial (CommandLineRunner que cria o primeiro ADMIN a partir de ADMIN_EMAIL/ADMIN_SENHA), GeografiaInicial (CommandLineRunner que importa país, estados e cidades do IBGE quando as tabelas estão vazias) e OpenApiConfig (documentação Swagger com botão de autenticação por token)."],
 ];
 
@@ -97,17 +103,20 @@ const decisoes = [
   "Responsável é um cadastro enxuto (nome e um telefone), cadastrado dentro do aluno. Endereços pertencem ao aluno. O vínculo aluno ↔ responsável é um @ManyToMany com @JoinTable no Aluno, usando Set para evitar duplicidade.",
   "Convenção de nomes: prefixos nm (nome), sg (sigla), dt (data), tp (tipo), nr (número), sn (senha), st (status), ds (descrição), cd (código), vl (valor). Colunas no banco em snake_case (nm_pessoa).",
   "JWT pelo suporte oficial do Spring (oauth2-resource-server): não há filtro JWT próprio; o TokenService apenas emite o token.",
-  "Quem está chamando chega aos services como Solicitante (usuarioId + se é ADMIN), montado no controller a partir do token. Os services usam isso para isolar os dados por profissional (alunos, endereços, responsáveis e avaliações) e liberar o ADMIN; o que é de outro profissional responde 404, sem revelar que existe.",
+  "Quem está chamando chega aos services como Solicitante (usuarioId + se é ADMIN ou RESPONSAVEL), montado no controller a partir do token. Os services usam isso para isolar os dados por profissional (alunos, endereços, responsáveis e avaliações) e por responsável (só os filhos), e para liberar o ADMIN. O que não pertence a quem pediu responde 404, sem revelar que existe.",
   "Estrutura da ficha cadastrável (Grupo > Subgrupo > Pergunta), em vez de um questionário fixo no código. As listas usam @OneToMany(mappedBy) com @OrderBy, e a árvore é montada só navegando pelos getters. O conteúdo das fichas pode ser licenciado: fica no banco da instância, nunca no código.",
   "Avaliação como um agregado: Resposta e AvaliacaoResumo usam cascade ALL e orphanRemoval, então são salvas e apagadas junto com a Avaliacao. A correção limpa as listas, força um flush (a tabela resposta tem UNIQUE (avaliacao_id, pergunta_id)) e recalcula.",
   "As regras de cálculo ficam isoladas na CalculadoraResultado, e a compatibilidade entre cálculo e tipo de pergunta fica no próprio enum (TipoCalculoEnum.aceita). Valores numéricos usam BigDecimal, que é exato, mapeado em NUMERIC(8,2).",
-  "Estrutura em uso é protegida: pergunta com respostas não pode ser excluída nem trocar de tipo, e subgrupo com respostas não pode trocar de cálculo. Correções de texto continuam liberadas.",
+  "Estrutura em uso é protegida: pergunta com respostas não pode ser excluída nem trocar de tipo, e subgrupo com respostas não pode trocar de cálculo. Correções de texto continuam liberadas. Subgrupo com faixas de classificação não pode ser excluído.",
+  "Medidas no aluno e na avaliação: o cadastro guarda as mais recentes e preenche a ficha; a avaliação guarda as do dia e, se for a mais nova do aluno, atualiza o cadastro. IMC e RCE são calculados pela própria Avaliacao, sem coluna no banco.",
+  "Relatório de evolução sem tabela própria: o EvolucaoService percorre as avaliações em ordem de data e agrupa os resultados pelo nome do subgrupo (sem diferenciar maiúsculas e espaços) e pelo tipo de cálculo, com LinkedHashMap e computeIfAbsent.",
+  "Classificação calculada na consulta: a faixa vale a partir de vlInicio, e o resultado fica com a de maior início que não passa do valor. Como os records de resposta não acessam o banco, o service calcula a classificação e a passa para o método de(...).",
 ];
 
 function gerarDot({ grupos, heranca, associacoes, composicoes, splines = "ortho" }) {
   const escapar = (t) => t.replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const linhas = (campos, estereotipo) => campos.map(([n, t]) =>
-    `<TR><TD ALIGN="LEFT">${estereotipo === "enumeration" || n === "..." ? "" : "- "}${escapar(n)}</TD><TD ALIGN="LEFT">${t ? ": " + escapar(t) : ""}</TD></TR>`).join("");
+    `<TR><TD ALIGN="LEFT">${estereotipo === "enumeration" || n === "..." ? "" : (n.includes("(") ? "+ " : "- ")}${escapar(n)}</TD><TD ALIGN="LEFT">${t ? ": " + escapar(t) : ""}</TD></TR>`).join("");
   const classe = (nome, campos, estereotipo) => {
     const cab = estereotipo ? `<TR><TD COLSPAN="2"><I>&lt;&lt;${estereotipo}&gt;&gt;</I></TD></TR>` : "";
     const titulo = estereotipo === "abstract" ? `<I>${nome}</I>` : nome;
@@ -169,12 +178,12 @@ async function main() {
       children: [
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [new TextRun({ text: "Impulso", bold: true, size: 44, color: HEADER_BG })] }),
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 400 }, children: [new TextRun({ text: "Plano de Classes", size: 30 })] }),
-        p("Este documento descreve as classes de domínio do Impulso e a organização do backend (Spring Boot 4, Java 17) em pacotes. Ele reflete o código implementado nas Fases 1 (cadastros) e 2 (módulo de avaliação)."),
+        p("Este documento descreve as classes de domínio do Impulso e a organização do backend (Spring Boot 4, Java 17) em pacotes. Ele reflete o código implementado nas Fases 1 (cadastros), 2 (módulo de avaliação) e 3 (evolução, medidas e classificação)."),
         h1("1. Diagramas de Classes de Domínio"),
         p("Setas com triângulo vazado indicam herança. Linhas simples são associações, com a cardinalidade em cada ponta. O losango (diagrama 2) indica composição: a parte só existe dentro do todo e é salva e apagada junto com ele."),
-        h2("1.1 Cadastros (Fase 1)"),
+        h2("1.1 Cadastros (Fases 1 e 3)"),
         await imagem(viz, cadastros, 620),
-        h2("1.2 Avaliação (Fase 2)"),
+        h2("1.2 Avaliação e classificação (Fases 2 e 3)"),
         await imagem(viz, avaliacao, 620),
         h1("2. Organização em Pacotes"),
         p("Base: com.impulso. O fluxo de uma requisição é controller → service → repository → model, com o pacote security atuando antes de qualquer controller."),

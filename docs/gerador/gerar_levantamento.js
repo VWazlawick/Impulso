@@ -40,10 +40,10 @@ function headerRow(headers, widths) {
   });
 }
 
-// Linhas ainda não entregues (fase 3, fase futura) ficam destacadas.
+// Linhas ainda não entregues (pendentes ou de fase futura) ficam destacadas.
 function pendente(status) {
   const s = (status || "").toLowerCase();
-  return s.includes("fase 3") || s.includes("futura") || s.includes("pendente");
+  return s.includes("futura") || s.includes("pendente");
 }
 
 function reqTable(rows, widths, headers) {
@@ -95,7 +95,7 @@ const RF = [
   { id: "RF15", desc: "O sistema deve manter cadastros de referência geográfica (País, Estado, Cidade) para uso nos endereços de alunos.", status: "Fase 1 (importados do IBGE)" },
   { id: "RF16", desc: "O sistema deve permitir cadastrar um ou mais endereços por aluno, preenchendo rua, bairro e cidade automaticamente a partir do CEP.", status: "Fase 1 (ViaCEP)" },
   { id: "RF17", desc: "O sistema deve permitir listar, consultar, corrigir e excluir as avaliações de um aluno; a correção recalcula os resultados.", status: "Fase 2" },
-  { id: "RF18", desc: "O sistema deve calcular o IMC e a razão cintura/estatura (RCE) e classificar os resultados pelas tabelas de referência por idade e sexo.", status: "Fase 3" },
+  { id: "RF18", desc: "O sistema deve calcular o IMC e a razão cintura/estatura (RCE) e classificar os resultados pelas tabelas de referência por idade e sexo.", status: "Fase 3 (tabelas cadastradas pelo ADMIN)" },
 ];
 
 const RNF = [
@@ -119,7 +119,9 @@ const RC = [
   { id: "RC07", desc: "O sistema deve possuir uma versão mobile (Android/iOS).", status: "Fase futura (fora do MVP)" },
   { id: "RC08", desc: "O conteúdo das fichas de avaliação pode ser licenciado: textos dos critérios e tabelas de referência são cadastrados na instância e nunca constam no código-fonte nem no repositório.", status: "Confirmado" },
   { id: "RC09", desc: "Estágio motor por habilidade: 2 ou mais NÃO = Inicial; nenhum NÃO e no máximo 1 PARCIAL = Maduro; demais casos = Elementar. A combinação de até 1 NÃO com 3 ou mais PARCIAL não é coberta pela regra original e foi tratada como Elementar.", status: "Confirmado (lacuna provisória)" },
-  { id: "RC10", desc: "A estrutura já usada em avaliações é protegida: pergunta com respostas não pode ser excluída nem trocar de tipo, e subgrupo com respostas não pode trocar de cálculo.", status: "Confirmado" },
+  { id: "RC10", desc: "A estrutura já usada em avaliações é protegida: pergunta com respostas não pode ser excluída nem trocar de tipo, e subgrupo com respostas não pode trocar de cálculo. Subgrupo com faixas de classificação não pode ser excluído.", status: "Confirmado" },
+  { id: "RC11", desc: "As medidas do cadastro do aluno (peso, estatura e cintura) são as mais recentes: a ficha da avaliação vem preenchida com elas, e só a avaliação mais nova do aluno as atualiza. Estatura e cintura aceitam centímetros ou metros (valor abaixo de 3 é tratado como metro).", status: "Confirmado" },
+  { id: "RC12", desc: "Cada faixa de classificação vale para um sexo e uma faixa de idade e diz: a partir de tal valor, o resultado recebe tal classificação. Não podem existir duas faixas com o mesmo início, para o mesmo indicador e sexo, com idades que se cruzam.", status: "Confirmado" },
 ];
 
 const doc = new Document({
@@ -147,7 +149,7 @@ const doc = new Document({
           children: [new TextRun({ text: "Levantamento de Requisitos", size: 30 })],
         }),
         p("Este documento consolida os requisitos funcionais, não funcionais e complementares do Impulso, sistema de controle de avaliações físico/motoras para um programa infantil de avaliação física/motora. Os requisitos foram levantados a partir de uma versão inicial e reconciliados com decisões tomadas ao longo do desenvolvimento (troca de plataforma mobile para web, estrutura de avaliação cadastrável Grupo/Subgrupo/Pergunta com resultado por subgrupo, e definição do escopo do MVP)."),
-        p("A coluna Situação indica em que fase cada requisito foi entregue. As Fases 1 (cadastros) e 2 (módulo de avaliação) estão concluídas; as linhas destacadas ainda não foram entregues."),
+        p("A coluna Situação indica em que fase cada requisito foi entregue. As Fases 1 (cadastros), 2 (módulo de avaliação) e 3 (evolução, medidas e classificação) estão concluídas, e com elas o backend; a interface web em React é a Fase 4. As linhas destacadas ainda não foram entregues."),
 
         h1("1. Requisitos Funcionais"),
         reqTable(RF, [1100, 6200, 2200], ["ID", "Descrição", "Situação"]),
@@ -167,7 +169,10 @@ const doc = new Document({
         bullet("As faixas etárias são cadastradas pelo ADMIN em cada Grupo, porque o manual da avaliação não as define."),
         bullet("O resultado de cada subgrupo (AvaliacaoResumo) é calculado ao salvar ou corrigir a avaliação e armazenado, não recalculado sob demanda — garante estabilidade do relatório de evolução caso a estrutura seja alterada no futuro."),
         bullet("Responsável é um cadastro enxuto (nome e um telefone), feito dentro do aluno; os endereços pertencem ao aluno."),
-        bullet("IMC, RCE e a classificação pelas tabelas de idade e sexo (RF18) ficam para a Fase 3, junto com o relatório de evolução; o sexo do aluno já é registrado desde a Fase 2."),
+        bullet("Peso, estatura e cintura ficam no cadastro do aluno e em cada avaliação (RC11). O IMC e a RCE são calculados a partir das medidas da avaliação, sem coluna própria no banco."),
+        bullet("As tabelas de referência viram faixas cadastradas pelo ADMIN (RC12), e a classificação é calculada na consulta, não gravada: corrigir uma faixa vale também para as avaliações antigas."),
+        bullet("O relatório de evolução junta os subgrupos de grupos diferentes pelo nome e pelo tipo de cálculo, então o mesmo teste segue numa única série quando o aluno muda de faixa etária."),
+        bullet("O responsável consulta, só para leitura, os dados básicos, as avaliações e a evolução dos filhos (RF14); não vê endereços nem os outros responsáveis do aluno."),
         bullet("Os testes automatizados dos critérios de aceite foram adiados; os cenários foram verificados com testes de ponta a ponta durante o desenvolvimento."),
       ],
     },

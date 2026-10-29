@@ -82,8 +82,8 @@ const exemplos = [
   "{ \"dtAvaliacao\": \"2026-10-25\", \"vlPeso\": 30.5, \"vlEstatura\": 135, \"vlCintura\": 60,",
   "  \"respostas\": [ { \"perguntaId\": 31, \"vlResposta\": 110 }, { \"perguntaId\": 32, \"vlResposta\": 125 }, ... ] }",
   "→ 201 { \"id\": 7, ..., \"medidas\": { \"vlPeso\": 30.5, \"vlEstatura\": 135, \"vlCintura\": 60,",
-  "                                \"vlImc\": 16.74, \"dsClassificacaoImc\": \"Saudável\",",
-  "                                \"vlRce\": 0.44, \"dsClassificacaoRce\": \"Adequada\" },",
+  "                                \"vlImc\": 16.74, \"vlRce\": 0.44,",
+  "                                \"dsClassificacaoImc\": \"Saudável\", \"dsClassificacaoRce\": \"Adequada\" },",
   "        \"resultados\": [ { \"nmSubgrupo\": \"Salto\", \"vlResultado\": 125, \"dsClassificacao\": \"Bom\" }, ... ] }",
   "",
   "POST /api/classificacao",
@@ -141,12 +141,12 @@ const criterios = [
 ];
 
 const tarefas = [
-  ["1", "Acesso do responsável: Solicitante e UsuarioLogado, consultas por responsável no AlunoRepository, AlunoService (listar e buscarAlunoPermitido) e liberação das rotas GET", "Pendente"],
-  ["2", "Medidas no cadastro do aluno: Aluno, ConversorMedida (aceita metros), AlunoRequest (validações), AlunoResponse e AlunoService", "Pendente"],
-  ["3", "Medidas na avaliação: Avaliacao (campos, calcularImc e calcularRce), FichaResponse, AvaliacaoRequest, MedidasResponse, AvaliacaoResponse e AvaliacaoService (gravar as medidas e atualizar o cadastro)", "Pendente"],
-  ["4", "Relatório de evolução: Avaliacao.calcularIdade, DTOs da evolução, EvolucaoService e EvolucaoController", "Pendente"],
-  ["5", "Cadastro das faixas: TipoIndicadorEnum, Classificacao, ClassificacaoRepository, DTOs, ClassificacaoService, ClassificacaoController e trava no SubgrupoService", "Pendente"],
-  ["6", "Classificação nos resultados: ClassificacaoService.classificar, DTOs com dsClassificacao, montarResposta no AvaliacaoService e na evolução", "Pendente"],
+  ["1", "Acesso do responsável: Solicitante e UsuarioLogado, consultas por responsável no AlunoRepository, AlunoService (listar e buscarAlunoPermitido) e liberação das rotas GET", "Concluída"],
+  ["2", "Medidas no cadastro do aluno: Aluno, ConversorMedida (aceita metros), AlunoRequest (validações), AlunoResponse e AlunoService", "Concluída"],
+  ["3", "Medidas na avaliação: Avaliacao (campos, calcularImc e calcularRce), FichaResponse, AvaliacaoRequest, MedidasResponse, AvaliacaoResponse e AvaliacaoService (gravar as medidas e atualizar o cadastro)", "Concluída"],
+  ["4", "Relatório de evolução: Avaliacao.calcularIdade, DTOs da evolução, EvolucaoService e EvolucaoController", "Concluída"],
+  ["5", "Cadastro das faixas: TipoIndicadorEnum, Classificacao, ClassificacaoRepository, DTOs, ClassificacaoService, ClassificacaoController e trava no SubgrupoService", "Concluída"],
+  ["6", "Classificação nos resultados: ClassificacaoService.classificar, DTOs com dsClassificacao, montarResposta no AvaliacaoService e na evolução", "Concluída"],
   ["7", "Testes automatizados dos critérios de aceite", "Adiada"],
 ];
 
@@ -242,7 +242,7 @@ async function main() {
       children: [
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [new TextRun({ text: "Impulso", bold: true, size: 44, color: HEADER_BG })] }),
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 400 }, children: [new TextRun({ text: "Especificação Detalhada — Fase 3: Evolução, Medidas e Classificação", size: 30 })] }),
-        p("A Fase 3 fecha o backend. O responsável passa a consultar os filhos, as medidas do corpo entram no cadastro e na avaliação (com IMC e RCE), o sistema monta o relatório de evolução e os resultados passam a ser classificados pelas tabelas de referência por idade e sexo. O desenho foi validado numa cópia do backend com testes de ponta a ponta antes de virar roteiro."),
+        p("A Fase 3 fecha o backend. O responsável passa a consultar os filhos, as medidas do corpo entram no cadastro e na avaliação (com IMC e RCE), o sistema monta o relatório de evolução e os resultados passam a ser classificados pelas tabelas de referência por idade e sexo. O desenho foi validado numa cópia do backend com testes de ponta a ponta antes de virar roteiro. A fase está concluída: as seis tarefas foram implementadas e conferidas com os testes de ponta a ponta das Fases 1, 2 e 3 (17 classes, 501 checagens). Os testes automatizados (Tarefa 7) foram adiados."),
         p("Conteúdo licenciado: as faixas de classificação reais vêm de tabelas que podem ser licenciadas. Elas são cadastradas pelo ADMIN e ficam só no banco da instância, nunca no código nem no repositório. Os nomes e valores deste documento são fictícios."),
 
         h1("1. Blocos da Fase"),
@@ -260,7 +260,7 @@ async function main() {
         p("O isolamento fica no AlunoService.buscarAlunoPermitido, que todas as rotas de aluno e de avaliação já usam: para um responsável, ele só encontra o aluno se houver o vínculo; sem vínculo, a resposta é 404, como já acontece entre profissionais."),
         h2("3.2 Medidas, IMC e RCE"),
         tabela(["Campo", "Unidade aceita", "Conversão", "Mínimo", "Formato"], [1400, 1200, 2700, 2000, 2200], validacoesMedidas, { monoCols: [0] }),
-        p("As três medidas são opcionais. A estatura e a cintura podem ser digitadas em centímetros ou em metros, e o sistema reconhece a unidade sozinho: uma criança mede entre 0,5 e 2 em metros e entre 50 e 200 em centímetros, então as duas faixas nunca se cruzam. Um valor abaixo de 3 só pode estar em metros e é multiplicado por 100 (classe ConversorMedida, chamada no construtor dos records AlunoRequest e AvaliacaoRequest, antes da validação). O banco guarda sempre em centímetros, e a resposta mostra o valor já convertido."),
+        p("As três medidas são opcionais. A estatura e a cintura podem ser digitadas em centímetros ou em metros, e o sistema reconhece a unidade sozinho: uma criança mede entre 0,5 e 2 em metros e entre 50 e 200 em centímetros, então as duas faixas nunca se cruzam. Um valor abaixo de 3 só pode estar em metros e é multiplicado por 100 (classe ConversorMedida, do pacote utils, chamada no construtor dos records AlunoRequest e AvaliacaoRequest, antes da validação). O banco guarda sempre em centímetros, e a resposta mostra o valor já convertido."),
         p("Depois da conversão, estatura abaixo de 30 ou cintura abaixo de 20 não é medida de uma criança em nenhuma das duas unidades (ex.: 15) e dá 400, com uma mensagem que mostra as duas formas aceitas."),
         tabela(["Índice", "Fórmula", "Precisa de", "Exemplo"], [900, 3200, 1900, 3500], formulas),
         p("Os índices são arredondados para 2 casas (HALF_UP) e calculados só com as medidas da própria avaliação: sem estatura, não há IMC nem RCE. Eles não são gravados; a Avaliacao os calcula sempre que é consultada."),
