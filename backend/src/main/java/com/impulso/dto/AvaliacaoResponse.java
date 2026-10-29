@@ -11,15 +11,13 @@ public record AvaliacaoResponse(Long id, LocalDate dtAvaliacao, Long alunoId, St
                                 Long profissionalId, Long grupoId, String nmGrupo, MedidasResponse medidas, List<RespostaResponse> respostas,
                                 List<ResultadoResponse> resultados) {
 
-    public static AvaliacaoResponse de(Avaliacao avaliacao){
+    public static AvaliacaoResponse de(Avaliacao avaliacao, MedidasResponse medidas, List<ResultadoResponse> resultados){
         int idade = Period.between(avaliacao.getAluno().getDtNascimento(), avaliacao.getDtAvaliacao()).getYears();
 
         return new AvaliacaoResponse(avaliacao.getId(), avaliacao.getDtAvaliacao(), avaliacao.getAluno().getId(),
                 avaliacao.getAluno().getNmPessoa(), idade, avaliacao.getProfissional().getId(), avaliacao.getGrupo().getId(),
                 avaliacao.getGrupo().getNmGrupo(),
-                MedidasResponse.de(avaliacao),
-                avaliacao.getRespostas().stream().map(RespostaResponse::de).toList(),
-                avaliacao.getResumos().stream().sorted(Comparator.comparing(resumo -> resumo.getSubgrupo().getNrOrdem()))
-                        .map(ResultadoResponse::de).toList());
+                medidas,
+                avaliacao.getRespostas().stream().map(RespostaResponse::de).toList(), resultados);
     }
 }

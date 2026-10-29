@@ -20,10 +20,12 @@ public class EvolucaoService {
 
     private final AlunoService alunoService;
     private final AvaliacaoRepository avaliacaoRepository;
+    private final ClassificacaoService classificacaoService;
 
-    public EvolucaoService(AlunoService alunoService, AvaliacaoRepository avaliacaoRepository) {
+    public EvolucaoService(AlunoService alunoService, AvaliacaoRepository avaliacaoRepository, ClassificacaoService classificacaoService) {
         this.alunoService = alunoService;
         this.avaliacaoRepository = avaliacaoRepository;
+        this.classificacaoService = classificacaoService;
     }
 
     @Transactional(readOnly = true)
@@ -45,12 +47,13 @@ public class EvolucaoService {
                         new EvolucaoIndicadorResponse(subgrupo.getNmSubgrupo(), subgrupo.getTpCalculo(),
                                 new ArrayList<>()));
 
-                indicador.pontos().add(EvolucaoPontoResponse.de(resumo));
+                indicador.pontos().add(EvolucaoPontoResponse.de(resumo, classificacaoService.classificarResultado(resumo)));
             }
         }
 
         return new EvolucaoResponse(aluno.getId(), aluno.getNmPessoa(),
-                avaliacoes.stream().map(EvolucaoAvaliacaoResponse::de).toList(),
+                avaliacoes.stream().map(avaliacao -> EvolucaoAvaliacaoResponse.de(avaliacao,
+                        classificacaoService.montarMedidas(avaliacao))).toList(),
                 new ArrayList<>(indicadores.values()));
     }
 }

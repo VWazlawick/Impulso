@@ -25,13 +25,15 @@ public class AvaliacaoService {
     private final AvaliacaoRepository avaliacaoRepository;
     private final CalculadoraResultado calculadoraResultado;
     private final AlunoRepository alunoRepository;
+    private final ClassificacaoService classificacaoService;
 
-    public AvaliacaoService(AlunoService alunoService, GrupoRepository grupoRepository, AvaliacaoRepository avaliacaoRepository, CalculadoraResultado calculadoraResultado, AlunoRepository alunoRepository) {
+    public AvaliacaoService(AlunoService alunoService, GrupoRepository grupoRepository, AvaliacaoRepository avaliacaoRepository, CalculadoraResultado calculadoraResultado, AlunoRepository alunoRepository, ClassificacaoService classificacaoService) {
         this.alunoService = alunoService;
         this.grupoRepository = grupoRepository;
         this.avaliacaoRepository = avaliacaoRepository;
         this.calculadoraResultado = calculadoraResultado;
         this.alunoRepository = alunoRepository;
+        this.classificacaoService = classificacaoService;
     }
 
     @Transactional(readOnly = true)
@@ -54,7 +56,7 @@ public class AvaliacaoService {
         avaliacaoRepository.save(avaliacao);
         atualizarMedidas(avaliacao);
 
-        return AvaliacaoResponse.de(avaliacao);
+        return montarResposta(avaliacao);
     }
 
     @Transactional(readOnly = true)
@@ -66,7 +68,7 @@ public class AvaliacaoService {
 
     @Transactional(readOnly = true)
     public AvaliacaoResponse buscarPorId(Long alunoId, Long id, Solicitante solicitante){
-        return AvaliacaoResponse.de(buscarAvaliacaoPermitida(alunoId, id, solicitante));
+        return montarResposta(buscarAvaliacaoPermitida(alunoId, id, solicitante));
     }
 
     @Transactional
@@ -91,7 +93,7 @@ public class AvaliacaoService {
         preencherResposta(avaliacao, request.respostas());
         atualizarMedidas(avaliacao);
 
-        return AvaliacaoResponse.de((avaliacao));
+        return montarResposta(avaliacao);
     }
 
     @Transactional
@@ -181,5 +183,14 @@ public class AvaliacaoService {
         if(avaliacao.getVlCintura() != null){
             aluno.setVlCintura(avaliacao.getVlCintura());
         }
+    }
+
+    private AvaliacaoResponse montarResposta(Avaliacao avaliacao){
+        List<ResultadoResponse> resultados = avaliacao.getResumos().stream()
+                .sorted(Comparator.comparing(resumo -> resumo.getSubgrupo().getNrOrdem()))
+                .map(resumo -> ResultadoResponse.de(resumo, classificacaoService.classificarResultado(resumo)))
+                .toList();
+
+        return AvaliacaoResponse.de(avaliacao, classificacaoService.montarMedidas(avaliacao), resultados);
     }
 }

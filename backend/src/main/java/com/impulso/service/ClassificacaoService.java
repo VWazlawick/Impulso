@@ -2,16 +2,22 @@ package com.impulso.service;
 
 import com.impulso.dto.ClassificacaoRequest;
 import com.impulso.dto.ClassificacaoResponse;
+import com.impulso.dto.MedidasResponse;
+import com.impulso.enums.SexoEnum;
 import com.impulso.enums.TipoIndicadorEnum;
 import com.impulso.exception.ConflitoException;
 import com.impulso.exception.RecursoNaoEncontradoException;
 import com.impulso.exception.RequisicaoInvalidaException;
+import com.impulso.model.Avaliacao;
+import com.impulso.model.AvaliacaoResumo;
 import com.impulso.model.Classificacao;
 import com.impulso.model.Subgrupo;
 import com.impulso.repository.ClassificacaoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -109,6 +115,32 @@ public class ClassificacaoService {
     private Classificacao buscarEntidade(Long id){
         return classificacaoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Classificação não encontrada!"));
+    }
+
+    public MedidasResponse montarMedidas(Avaliacao avaliacao){
+        return MedidasResponse.de(avaliacao, classificar(TipoIndicadorEnum.IMC, null, avaliacao,
+                avaliacao.calcularImc()), classificar(TipoIndicadorEnum.RCE, null, avaliacao, avaliacao.calcularRce()));
+    }
+
+    public String classificarResultado(AvaliacaoResumo resumo){
+        return classificar(TipoIndicadorEnum.SUBGRUPO, resumo.getSubgrupo(), resumo.getAvaliacao(), resumo.getVlResultado());
+    }
+
+    private String classificar(TipoIndicadorEnum tpIndicador, Subgrupo subgrupo, Avaliacao avaliacao, BigDecimal valor){
+        if(valor == null){
+            return null;
+        }
+
+        SexoEnum sexo = avaliacao.getAluno().getSexo();
+        int idade = avaliacao.calcularIdade();
+
+        return buscarFaixas(tpIndicador, subgrupo).stream()
+                .filter(faixa -> faixa.getTpSexo() == sexo)
+                .filter(faixa -> idade >= faixa.getNrIdadeMin() && idade <= faixa.getNrIdadeMax())
+                .filter(faixa -> faixa.getVlInicio().compareTo(valor) <= 0)
+                .max(Comparator.comparing(Classificacao::getVlInicio))
+                .map(Classificacao::getDsClassificacao)
+                .orElse(null);
     }
 
 
