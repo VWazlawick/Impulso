@@ -2,6 +2,7 @@ package com.impulso.service;
 
 import com.impulso.dto.*;
 import com.impulso.enums.TipoRespostaEnum;
+import com.impulso.exception.ConflitoException;
 import com.impulso.exception.RecursoNaoEncontradoException;
 import com.impulso.exception.RequisicaoInvalidaException;
 import com.impulso.model.*;
@@ -39,6 +40,7 @@ public class AvaliacaoService {
     @Transactional(readOnly = true)
     public FichaResponse ficha(Long alunoId, LocalDate dtAvaliacao, Solicitante solicitante){
         Aluno aluno = alunoService.buscarAlunoPermitido(alunoId, solicitante);
+        validarAtivo(aluno);
         LocalDate data = (dtAvaliacao == null) ? LocalDate.now() : dtAvaliacao;
         int idade = calcularIdade(aluno, data);
         return FichaResponse.de(aluno, data, idade, buscarGrupoPorIdade(idade));
@@ -47,6 +49,7 @@ public class AvaliacaoService {
     @Transactional
     public AvaliacaoResponse registrar(Long alunoId, AvaliacaoRequest request, Solicitante solicitante){
         Aluno aluno = alunoService.buscarAlunoPermitido(alunoId, solicitante);
+        validarAtivo(aluno);
         int idade = calcularIdade(aluno, request.dtAvaliacao());
         Grupo grupo = buscarGrupoPorIdade(idade);
 
@@ -192,5 +195,11 @@ public class AvaliacaoService {
                 .toList();
 
         return AvaliacaoResponse.de(avaliacao, classificacaoService.montarMedidas(avaliacao), resultados);
+    }
+
+    private void validarAtivo(Aluno aluno){
+        if(!aluno.isStAtivo()){
+            throw new ConflitoException("O aluno está inativo: reative o cadastro para gerar avaliações!");
+        }
     }
 }

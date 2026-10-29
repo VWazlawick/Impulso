@@ -68,6 +68,7 @@ CREATE TABLE responsavel (
 
 -- Medidas do corpo (opcionais): peso em kg, estatura e cintura em cm. Guardam a medida mais
 -- recente; a avaliação mais nova do aluno atualiza esses valores (Fase 3).
+-- st_ativo: o aluno inativo sai da lista padrão e não recebe avaliação nova; o histórico fica.
 CREATE TABLE aluno (
     id               BIGINT PRIMARY KEY REFERENCES pessoa(id),
     dt_nascimento    DATE NOT NULL,
@@ -78,6 +79,7 @@ CREATE TABLE aluno (
     vl_peso          NUMERIC(5,2),
     vl_estatura      NUMERIC(5,2),
     vl_cintura       NUMERIC(5,2),
+    st_ativo         BOOLEAN NOT NULL DEFAULT TRUE,
     profissional_id  BIGINT NOT NULL REFERENCES profissional(id)
 );
 

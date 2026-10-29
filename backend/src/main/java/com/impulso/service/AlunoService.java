@@ -52,7 +52,7 @@ public class AlunoService {
     }
 
     @Transactional(readOnly = true)
-    public List<AlunoResponse> listar(Solicitante solicitante) {
+    public List<AlunoResponse> listar(Solicitante solicitante, boolean inativos) {
 
         List<Aluno> alunos;
         if(solicitante.admin()){
@@ -65,7 +65,7 @@ public class AlunoService {
             Profissional profissional = profissionalLogado(solicitante.usuarioId());
             alunos = alunoRepository.findByProfissionalIdOrderByNmPessoaAsc(profissional.getId());
         }
-        return alunos.stream().map(AlunoResponse::de).toList();
+        return alunos.stream().filter(aluno -> inativos || aluno.isStAtivo()).map(AlunoResponse::de).toList();
     }
 
     @Transactional(readOnly = true)
@@ -133,6 +133,16 @@ public class AlunoService {
                 new Responsavel(request.nmPessoa(), request.nrTelefone()));
         aluno.getResponsaveis().add(responsavel);
         return ResponsavelResponse.de(responsavel);
+    }
+
+    @Transactional
+    public void inativar(Long alunoId, Solicitante solicitante){
+        buscarAlunoPermitido(alunoId, solicitante).setStAtivo(false);
+    }
+
+    @Transactional
+    public void ativar(Long alunoId, Solicitante solicitante){
+        buscarAlunoPermitido(alunoId, solicitante).setStAtivo(true);
     }
 
     private Profissional profissionalLogado(Long usuarioId) {

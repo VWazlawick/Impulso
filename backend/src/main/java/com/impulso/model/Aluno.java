@@ -51,6 +51,9 @@ public class Aluno extends Pessoa{
     )
     private Set<Responsavel> responsaveis = new HashSet<>();
 
+    @Column(nullable = false)
+    private boolean stAtivo = true;
+
     public Aluno(String nmPessoa, String cpf, String email, LocalDate dtNascimento, TipoServicoEnum tpServico, Profissional profissional, SexoEnum sexo) {
         super(nmPessoa, cpf, email);
         this.dtNascimento = dtNascimento;

@@ -32,8 +32,9 @@ public class AlunoController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'RESPONSAVEL')")
-    public List<AlunoResponse> listar(@AuthenticationPrincipal Jwt jwt){
-        return alunoService.listar(UsuarioLogado.solicitante(jwt));
+    public List<AlunoResponse> listar(@RequestParam(defaultValue = "false") boolean inativos,
+                                      @AuthenticationPrincipal Jwt jwt){
+        return alunoService.listar(UsuarioLogado.solicitante(jwt), inativos);
     }
 
     @GetMapping("/{id}")
@@ -76,5 +77,17 @@ public class AlunoController {
     public ResponsavelResponse cadastrarResponsavel(@PathVariable Long id, @RequestBody @Valid ResponsavelRequest request,
                                                     @AuthenticationPrincipal Jwt jwt){
         return alunoService.cadastrarResponsavel(id, request, UsuarioLogado.solicitante(jwt));
+    }
+
+    @PatchMapping("/{id}/inativar")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void inativar(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+        alunoService.inativar(id, UsuarioLogado.solicitante(jwt));
+    }
+
+    @PatchMapping("/{id}/ativar")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void ativar(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+        alunoService.ativar(id, UsuarioLogado.solicitante(jwt));
     }
 }
