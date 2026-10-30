@@ -32,7 +32,7 @@ function ListaAvaliacoes({ alunoId, base, podeCriar = false, ativo = true }: Pro
             variant="contained"
             startIcon={<AddRounded />}
             component={RouterLink}
-            to={`${base}/nova`}
+            to={`/avaliacoes/nova?aluno=${alunoId}`}
             disabled={!ativo}
           >
             Nova avaliação

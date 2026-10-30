@@ -44,4 +44,12 @@ public class Subgrupo {
         this.nrOrdem = nrOrdem;
         this.grupo = grupo;
     }
+
+    public String unidadeDoResultado(){
+        return perguntas.stream()
+                .map(Pergunta::getDsUnidade)
+                .filter(unidade -> unidade != null && !unidade.isBlank())
+                .findFirst()
+                .orElse(null);
+    }
 }

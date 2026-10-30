@@ -33,7 +33,7 @@ function App() {
               <Route path="/alunos/novo" element={<AlunoFormulario />} />
               <Route path="/alunos/:id" element={<AlunoDetalhe />} />
               <Route path="/alunos/:id/editar" element={<AlunoFormulario />} />
-              <Route path="/alunos/:id/avaliacoes/nova" element={<NovaAvaliacao />} />
+              <Route path="/avaliacoes/nova" element={<NovaAvaliacao />} />
               <Route path="/alunos/:id/avaliacoes/:avaliacaoId" element={<AvaliacaoDetalhe />} />
               <Route path="/alunos/:id/avaliacoes/:avaliacaoId/corrigir" element={<CorrigirAvaliacao />} />
               <Route path="/responsaveis" element={<Responsaveis />} />

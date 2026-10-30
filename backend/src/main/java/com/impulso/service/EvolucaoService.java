@@ -45,7 +45,7 @@ public class EvolucaoService {
 
                 EvolucaoIndicadorResponse indicador = indicadores.computeIfAbsent(chave, k ->
                         new EvolucaoIndicadorResponse(subgrupo.getNmSubgrupo(), subgrupo.getTpCalculo(),
-                                new ArrayList<>()));
+                                new ArrayList<>(), subgrupo.unidadeDoResultado()));
 
                 indicador.pontos().add(EvolucaoPontoResponse.de(resumo, classificacaoService.classificarResultado(resumo)));
             }

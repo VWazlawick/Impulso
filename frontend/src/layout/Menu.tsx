@@ -3,6 +3,7 @@ import { Box, ListItemButton, Paper } from '@mui/material'
 import ApartmentRounded from '@mui/icons-material/ApartmentRounded'
 import BadgeRounded from '@mui/icons-material/BadgeRounded'
 import BarChartRounded from '@mui/icons-material/BarChartRounded'
+import FactCheckRounded from '@mui/icons-material/FactCheckRounded'
 import FamilyRestroomRounded from '@mui/icons-material/FamilyRestroomRounded'
 import FormatListBulletedRounded from '@mui/icons-material/FormatListBulletedRounded'
 import PeopleAltRounded from '@mui/icons-material/PeopleAltRounded'
@@ -10,7 +11,7 @@ import { NavLink } from 'react-router'
 import Emblema from '../components/Emblema.tsx'
 import { useSessao } from '../sessao/useSessao.ts'
 import type { TipoUsuario } from '../types/enums.ts'
-import { amarelo, azul, lavanda, menta, pessego, rosa, type Cor } from '../utils/cores.ts'
+import { amarelo, azul, lavanda, lilas, menta, pessego, rosa, type Cor } from '../utils/cores.ts'
 
 type ItemMenu = {
   texto: string
@@ -20,6 +21,12 @@ type ItemMenu = {
 }
 
 const alunos = { caminho: '/alunos', icone: <PeopleAltRounded fontSize="small" />, cor: pessego }
+const novaAvaliacao: ItemMenu = {
+  texto: 'Nova avaliação',
+  caminho: '/avaliacoes/nova',
+  icone: <FactCheckRounded fontSize="small" />,
+  cor: lilas,
+}
 const responsaveis: ItemMenu = {
   texto: 'Responsáveis',
   caminho: '/responsaveis',
@@ -31,13 +38,14 @@ const responsaveis: ItemMenu = {
 const itensPorPerfil: Record<TipoUsuario, ItemMenu[]> = {
   ADMIN: [
     { texto: 'Alunos', ...alunos },
+    novaAvaliacao,
     responsaveis,
     { texto: 'Profissionais', caminho: '/profissionais', icone: <BadgeRounded fontSize="small" />, cor: menta },
     { texto: 'Estrutura da ficha', caminho: '/grupos', icone: <FormatListBulletedRounded fontSize="small" />, cor: lavanda },
     { texto: 'Classificações', caminho: '/classificacoes', icone: <BarChartRounded fontSize="small" />, cor: amarelo },
     { texto: 'Empresa', caminho: '/empresa', icone: <ApartmentRounded fontSize="small" />, cor: azul },
   ],
-  PROFISSIONAL: [{ texto: 'Meus alunos', ...alunos }, responsaveis],
+  PROFISSIONAL: [{ texto: 'Meus alunos', ...alunos }, novaAvaliacao, responsaveis],
   RESPONSAVEL: [],
 }
 
