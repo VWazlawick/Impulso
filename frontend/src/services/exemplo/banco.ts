@@ -9,7 +9,6 @@ import type {
   TipoUsuario,
 } from '../../types/enums.ts'
 import type { PaisResponse } from '../../types/geografia.ts'
-import type { GrupoResponse } from '../../types/grupo.ts'
 
 // Dados de exemplo, fictícios. Ficam só na memória do navegador e voltam ao
 // início quando a página recarrega. A pasta "exemplo" inteira sai quando o
@@ -54,6 +53,8 @@ export type EnderecoExemplo = {
   cidadeId: number
 }
 
+export type GrupoExemplo = { id: number; nmGrupo: string; nrIdadeMin: number; nrIdadeMax: number }
+
 export type SubgrupoExemplo = { id: number; grupoId: number; nmSubgrupo: string; tpCalculo: TipoCalculo; nrOrdem: number }
 
 export type PerguntaExemplo = {
@@ -92,7 +93,7 @@ type Banco = {
   responsaveis: ResponsavelExemplo[]
   alunos: AlunoExemplo[]
   enderecos: EnderecoExemplo[]
-  grupos: GrupoResponse[]
+  grupos: GrupoExemplo[]
   subgrupos: SubgrupoExemplo[]
   perguntas: PerguntaExemplo[]
   classificacoes: ClassificacaoExemplo[]

@@ -5,6 +5,7 @@ export type GrupoResponse = {
   nmGrupo: string
   nrIdadeMin: number
   nrIdadeMax: number
+  qtSubgrupos: number
 }
 
 export type GrupoDetalheResponse = {

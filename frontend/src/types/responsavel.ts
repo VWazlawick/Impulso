@@ -3,6 +3,7 @@ export type ResponsavelResponse = {
   nmPessoa: string
   nrTelefone: string
   possuiAcesso: boolean
+  usuarioId: number | null
 }
 
 export type ResponsavelRequest = {

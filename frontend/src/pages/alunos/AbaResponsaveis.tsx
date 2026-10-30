@@ -10,11 +10,13 @@ import BotaoIcone from '../../components/BotaoIcone.tsx'
 import Carregando from '../../components/Carregando.tsx'
 import DialogoConfirmar from '../../components/DialogoConfirmar.tsx'
 import EstadoVazio from '../../components/EstadoVazio.tsx'
+import GerenciarAcessoDialog from '../../components/GerenciarAcessoDialog.tsx'
 import LinhaPessoa from '../../components/LinhaPessoa.tsx'
 import ResponsavelDialog from '../../components/ResponsavelDialog.tsx'
 import { useDados } from '../../hooks/useDados.ts'
 import { alunoService } from '../../services/alunoService.ts'
 import { responsavelService } from '../../services/responsavelService.ts'
+import { useSessao } from '../../sessao/useSessao.ts'
 import type { ResponsavelResponse } from '../../types/responsavel.ts'
 import { lilas, perigo, rosa } from '../../utils/cores.ts'
 import { formatarTelefone } from '../../utils/documentos.ts'
@@ -26,6 +28,7 @@ type Dialogo =
   | { tipo: 'editar'; responsavel: ResponsavelResponse }
   | { tipo: 'acesso'; responsavel: ResponsavelResponse }
   | { tipo: 'desvincular'; responsavel: ResponsavelResponse }
+  | { tipo: 'gerenciar'; responsavel: ResponsavelResponse; usuarioId: number }
 
 type Props = {
   alunoId: number
@@ -34,6 +37,8 @@ type Props = {
 
 // Quem acompanha a criança. Com acesso, o responsável vê as avaliações e a evolução.
 function AbaResponsaveis({ alunoId, nomeAluno }: Props) {
+  const { sessao } = useSessao()
+  const admin = sessao?.tipo === 'ADMIN'
   const responsaveis = useDados(() => alunoService.listarResponsaveis(alunoId), [alunoId])
   const [dialogo, setDialogo] = useState<Dialogo | null>(null)
 
@@ -78,6 +83,16 @@ function AbaResponsaveis({ alunoId, nomeAluno }: Props) {
                     Criar acesso
                   </Button>
                 )}
+                {admin && r.usuarioId !== null && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<KeyRounded />}
+                    onClick={() => r.usuarioId !== null && setDialogo({ tipo: 'gerenciar', responsavel: r, usuarioId: r.usuarioId })}
+                  >
+                    Acesso
+                  </Button>
+                )}
                 <BotaoIcone rotulo={`Editar ${r.nmPessoa}`} cor={lilas} onClick={() => setDialogo({ tipo: 'editar', responsavel: r })}>
                   <EditRounded fontSize="small" />
                 </BotaoIcone>
@@ -120,6 +135,9 @@ function AbaResponsaveis({ alunoId, nomeAluno }: Props) {
       )}
       {dialogo?.tipo === 'acesso' && (
         <AcessoDialog pessoaId={dialogo.responsavel.id} nome={dialogo.responsavel.nmPessoa} onFechar={fechar} onSalvo={salvo} />
+      )}
+      {dialogo?.tipo === 'gerenciar' && (
+        <GerenciarAcessoDialog usuarioId={dialogo.usuarioId} nome={dialogo.responsavel.nmPessoa} onFechar={fechar} onSalvo={salvo} />
       )}
       {dialogo?.tipo === 'desvincular' && (
         <DialogoConfirmar

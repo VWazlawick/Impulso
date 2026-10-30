@@ -31,6 +31,7 @@ function valorOuTraco(valor: number | null, unidade = '') {
 // Um teste ao longo do tempo: linha para número, sequência de selos para estágio.
 function CartaoIndicador({ indicador }: { indicador: EvolucaoIndicadorResponse }) {
   const numerico = resultadoNumerico(indicador.tpCalculo)
+  const unidade = indicador.dsUnidade ? ` ${indicador.dsUnidade}` : ''
   const pontos = indicador.pontos
     .filter((p) => p.vlResultado !== null)
     .map((p) => ({ data: p.dtAvaliacao, valor: p.vlResultado as number, detalhe: p.dsClassificacao }))
@@ -51,14 +52,18 @@ function CartaoIndicador({ indicador }: { indicador: EvolucaoIndicadorResponse }
 
       {numerico ? (
         <>
-          <GraficoLinha pontos={pontos} descricao={`${indicador.nmSubgrupo} ao longo das avaliações`} />
+          <GraficoLinha
+            pontos={pontos}
+            descricao={`${indicador.nmSubgrupo} ao longo das avaliações`}
+            unidade={indicador.dsUnidade ?? undefined}
+          />
           {/* A mesma informação em texto, para quem não lê o gráfico. */}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
             {indicador.pontos.map((p) => (
               <Etiqueta
                 key={p.avaliacaoId}
                 cor={neutro}
-                texto={`${formatarDataCurta(p.dtAvaliacao)}: ${valorOuTraco(p.vlResultado)}${p.dsClassificacao ? ` · ${p.dsClassificacao}` : ''}`}
+                texto={`${formatarDataCurta(p.dtAvaliacao)}: ${valorOuTraco(p.vlResultado, unidade)}${p.dsClassificacao ? ` · ${p.dsClassificacao}` : ''}`}
               />
             ))}
           </Box>

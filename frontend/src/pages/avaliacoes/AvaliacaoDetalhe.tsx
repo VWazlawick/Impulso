@@ -44,7 +44,7 @@ function AvaliacaoDetalhe({ familia = false }: Props) {
   const [excluir, setExcluir] = useState(false)
 
   const avaliacao = useDados(() => avaliacaoService.buscarPorId(alunoId, avaliacaoId), [alunoId, avaliacaoId])
-  // A ficha do grupo (com unidades e perguntas) só abre para admin e profissional.
+  // A ficha do grupo (para mostrar as respostas por teste) só abre para admin e profissional.
   const grupoId = !familia && avaliacao.dados ? avaliacao.dados.grupoId : null
   const grupo = useDados(async () => (grupoId === null ? null : grupoService.buscarPorId(grupoId)), [grupoId])
 
@@ -66,13 +66,6 @@ function AvaliacaoDetalhe({ familia = false }: Props) {
   }
 
   const atual = avaliacao.dados
-  const unidadeDoSubgrupo = new Map<number, string>()
-  for (const subgrupo of grupo.dados?.subgrupos ?? []) {
-    const unidade = subgrupo.perguntas.find((p) => p.dsUnidade)?.dsUnidade
-    if (unidade) {
-      unidadeDoSubgrupo.set(subgrupo.id, unidade)
-    }
-  }
   const respondidos = (grupo.dados?.subgrupos ?? []).filter((s) =>
     s.perguntas.some((p) => atual.respostas.some((r) => r.perguntaId === p.id)),
   )
@@ -123,7 +116,7 @@ function AvaliacaoDetalhe({ familia = false }: Props) {
       ) : (
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 2, mb: 2.5 }}>
           {atual.resultados.map((resultado) => {
-            const unidade = unidadeDoSubgrupo.get(resultado.subgrupoId)
+            const unidade = resultado.dsUnidade
             return (
               <Card key={resultado.subgrupoId} sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>

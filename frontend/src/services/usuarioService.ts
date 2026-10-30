@@ -1,5 +1,5 @@
 import type { TipoUsuario } from '../types/enums.ts'
-import type { UsuarioRequest, UsuarioResponse } from '../types/usuario.ts'
+import type { AtualizarUsuarioRequest, UsuarioRequest, UsuarioResponse } from '../types/usuario.ts'
 import { emailValido } from '../utils/documentos.ts'
 import { copiar, esperar, novoId, solicitante } from './exemplo/apoio.ts'
 import { banco } from './exemplo/banco.ts'
@@ -21,6 +21,27 @@ function validar({ email, senha }: UsuarioRequest) {
     campos.senha = 'Informe a senha!'
   } else if (senha.length < 8) {
     campos.senha = 'A Senha deve ter no mínimo 8 caracteres!'
+  }
+  falharSeHouver(campos)
+}
+
+function buscarEntidade(id: number) {
+  const usuario = banco.usuarios.find((u) => u.id === id)
+  if (!usuario) {
+    throw new ErroApi(404, 'Usuário não encontrado!')
+  }
+  return usuario
+}
+
+function validarAtualizacao({ email, senha }: AtualizarUsuarioRequest) {
+  const campos: Record<string, string> = {}
+  if (!email.trim()) {
+    campos.email = 'O email é obrigatório!'
+  } else if (!emailValido(email.trim())) {
+    campos.email = 'Email inválido!'
+  }
+  if (senha !== null && senha.length < 8) {
+    campos.senha = 'A senha deve ter no mínimo 8 caracteres!'
   }
   falharSeHouver(campos)
 }
@@ -83,5 +104,40 @@ export const usuarioService = {
       throw new ErroApi(409, 'Alunos não possuem acesso ao sistema!')
     }
     throw new ErroApi(404, 'Pessoa não encontrada!')
+  },
+
+  // GET /api/usuario/{id}
+  async buscarPorId(id: number): Promise<UsuarioResponse> {
+    await esperar()
+    solicitante('ADMIN')
+    return copiar(montarUsuario(buscarEntidade(id)))
+  },
+
+  // PUT /api/usuario/{id}
+  async atualizar(id: number, request: AtualizarUsuarioRequest): Promise<UsuarioResponse> {
+    await esperar()
+    solicitante('ADMIN')
+    const usuario = buscarEntidade(id)
+    validarAtualizacao(request)
+    const email = request.email.trim()
+    if (banco.usuarios.some((u) => u.id !== id && u.email.toLowerCase() === email.toLowerCase())) {
+      throw new ErroApi(409, 'Email já cadastrado!')
+    }
+    usuario.email = email
+    return copiar(montarUsuario(usuario))
+  },
+
+  // PATCH /api/usuario/{id}/inativar  (a pessoa não consegue mais entrar)
+  async inativar(id: number): Promise<void> {
+    await esperar()
+    solicitante('ADMIN')
+    buscarEntidade(id).stAtivo = false
+  },
+
+  // PATCH /api/usuario/{id}/reativar
+  async reativar(id: number): Promise<void> {
+    await esperar()
+    solicitante('ADMIN')
+    buscarEntidade(id).stAtivo = true
   },
 }

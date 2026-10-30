@@ -23,6 +23,7 @@ export type EvolucaoIndicadorResponse = {
   nmSubgrupo: string
   tpCalculo: TipoCalculo
   pontos: EvolucaoPontoResponse[]
+  dsUnidade: string | null
 }
 
 export type EvolucaoResponse = {

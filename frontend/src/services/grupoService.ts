@@ -1,7 +1,7 @@
 import type { GrupoDetalheResponse, GrupoRequest, GrupoResponse } from '../types/grupo.ts'
 import { copiar, esperar, novoId, solicitante } from './exemplo/apoio.ts'
 import { banco } from './exemplo/banco.ts'
-import { montarGrupoDetalhe } from './exemplo/montar.ts'
+import { montarGrupo, montarGrupoDetalhe } from './exemplo/montar.ts'
 import { ErroApi } from './erros.ts'
 
 // Por enquanto usa os dados de exemplo e repete as regras do GrupoService.
@@ -33,7 +33,7 @@ export const grupoService = {
   async listar(): Promise<GrupoResponse[]> {
     await esperar()
     solicitante('ADMIN', 'PROFISSIONAL')
-    return copiar([...banco.grupos].sort((a, b) => a.nrIdadeMin - b.nrIdadeMin))
+    return copiar([...banco.grupos].sort((a, b) => a.nrIdadeMin - b.nrIdadeMin).map(montarGrupo))
   },
 
   // GET /api/grupo/{id}
@@ -50,7 +50,7 @@ export const grupoService = {
     validarFaixa(request, null)
     const grupo = { id: novoId(), ...request }
     banco.grupos.push(grupo)
-    return copiar(grupo)
+    return copiar(montarGrupo(grupo))
   },
 
   // PUT /api/grupo/{id}
@@ -60,7 +60,7 @@ export const grupoService = {
     const grupo = buscarEntidade(id)
     validarFaixa(request, id)
     Object.assign(grupo, request)
-    return copiar(grupo)
+    return copiar(montarGrupo(grupo))
   },
 
   // DELETE /api/grupo/{id}

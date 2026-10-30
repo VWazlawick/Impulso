@@ -52,6 +52,7 @@ export type ResultadoResponse = {
   vlResultado: number | null
   tpEstagio: Estagio | null
   dsClassificacao: string | null
+  dsUnidade: string | null
 }
 
 export type AvaliacaoResponse = {

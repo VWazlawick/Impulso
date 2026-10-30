@@ -15,7 +15,7 @@ import { useDados } from '../../hooks/useDados.ts'
 import { grupoService } from '../../services/grupoService.ts'
 import type { GrupoResponse } from '../../types/grupo.ts'
 import { amarelo, corDaPosicao, lilas, perigo } from '../../utils/cores.ts'
-import { faixaEtaria } from '../../utils/formatos.ts'
+import { contar, faixaEtaria } from '../../utils/formatos.ts'
 import GrupoDialog from './GrupoDialog.tsx'
 
 type Dialogo = { tipo: 'grupo'; grupo?: GrupoResponse } | { tipo: 'excluir'; grupo: GrupoResponse }
@@ -57,6 +57,11 @@ function Grupos() {
                   <Etiqueta cor={amarelo} texto={faixaEtaria(grupo.nrIdadeMin, grupo.nrIdadeMax)} />
                 </Box>
               </Box>
+              <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
+                {grupo.qtSubgrupos === 0
+                  ? 'Nenhum subgrupo ainda'
+                  : `${contar(grupo.qtSubgrupos, 'subgrupo', 'subgrupos')} na ficha`}
+              </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 'auto' }}>
                 <Button
                   component={RouterLink}

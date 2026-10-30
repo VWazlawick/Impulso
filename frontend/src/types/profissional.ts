@@ -4,6 +4,7 @@ export type ProfissionalResponse = {
   cpf: string
   email: string | null
   possuiAcesso: boolean
+  usuarioId: number | null
 }
 
 export type ProfissionalRequest = {

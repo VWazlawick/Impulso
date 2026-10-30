@@ -23,3 +23,9 @@ export type UsuarioRequest = {
   email: string
   senha: string
 }
+
+// Troca o e-mail do acesso e, se vier, a senha (null mantém a atual).
+export type AtualizarUsuarioRequest = {
+  email: string
+  senha: string | null
+}

@@ -5,6 +5,7 @@ import EditRounded from '@mui/icons-material/EditRounded'
 import KeyRounded from '@mui/icons-material/KeyRounded'
 import AcessoDialog from '../../components/AcessoDialog.tsx'
 import BotaoIcone from '../../components/BotaoIcone.tsx'
+import GerenciarAcessoDialog from '../../components/GerenciarAcessoDialog.tsx'
 import Carregando from '../../components/Carregando.tsx'
 import EstadoVazio from '../../components/EstadoVazio.tsx'
 import LinhaPessoa from '../../components/LinhaPessoa.tsx'
@@ -16,7 +17,10 @@ import { lilas, menta } from '../../utils/cores.ts'
 import { formatarCpf } from '../../utils/documentos.ts'
 import ProfissionalDialog from './ProfissionalDialog.tsx'
 
-type Dialogo = { tipo: 'profissional'; profissional?: ProfissionalResponse } | { tipo: 'acesso'; profissional: ProfissionalResponse }
+type Dialogo =
+  | { tipo: 'profissional'; profissional?: ProfissionalResponse }
+  | { tipo: 'acesso'; profissional: ProfissionalResponse }
+  | { tipo: 'gerenciar'; profissional: ProfissionalResponse; usuarioId: number }
 
 function Profissionais() {
   const profissionais = useDados(() => profissionalService.listar(), [])
@@ -54,7 +58,16 @@ function Profissionais() {
             possuiAcesso={p.possuiAcesso}
             acoes={
               <>
-                {!p.possuiAcesso && (
+                {p.usuarioId !== null ? (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<KeyRounded />}
+                    onClick={() => p.usuarioId !== null && setDialogo({ tipo: 'gerenciar', profissional: p, usuarioId: p.usuarioId })}
+                  >
+                    Acesso
+                  </Button>
+                ) : (
                   <Button size="small" variant="outlined" startIcon={<KeyRounded />} onClick={() => setDialogo({ tipo: 'acesso', profissional: p })}>
                     Criar acesso
                   </Button>
@@ -79,6 +92,9 @@ function Profissionais() {
           onFechar={fechar}
           onSalvo={salvo}
         />
+      )}
+      {dialogo?.tipo === 'gerenciar' && (
+        <GerenciarAcessoDialog usuarioId={dialogo.usuarioId} nome={dialogo.profissional.nmPessoa} onFechar={fechar} onSalvo={salvo} />
       )}
     </>
   )

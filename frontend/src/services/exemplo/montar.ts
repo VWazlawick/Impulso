@@ -23,6 +23,7 @@ import {
   type AvaliacaoExemplo,
   type ClassificacaoExemplo,
   type EnderecoExemplo,
+  type GrupoExemplo,
   type PerguntaExemplo,
   type ProfissionalExemplo,
   type RespostaExemplo,
@@ -44,9 +45,22 @@ export function montarSubgrupo({ id, nmSubgrupo, tpCalculo, nrOrdem }: SubgrupoE
   return { id, nmSubgrupo, tpCalculo, nrOrdem, perguntas }
 }
 
-export function montarGrupoDetalhe(grupo: GrupoResponse): GrupoDetalheResponse {
+export function montarGrupo(grupo: GrupoExemplo): GrupoResponse {
+  return { ...grupo, qtSubgrupos: banco.subgrupos.filter((s) => s.grupoId === grupo.id).length }
+}
+
+export function montarGrupoDetalhe(grupo: GrupoExemplo): GrupoDetalheResponse {
   const subgrupos = banco.subgrupos.filter((s) => s.grupoId === grupo.id).sort(porOrdem).map(montarSubgrupo)
   return { ...grupo, subgrupos }
+}
+
+// Igual ao Subgrupo.unidadeDoResultado: a unidade das perguntas do teste.
+function unidadeDoSubgrupo(subgrupoId: number) {
+  const pergunta = banco.perguntas
+    .filter((p) => p.subgrupoId === subgrupoId)
+    .sort(porOrdem)
+    .find((p) => p.dsUnidade !== null && p.dsUnidade.trim() !== '')
+  return pergunta ? pergunta.dsUnidade : null
 }
 
 export function montarClassificacao(classificacao: ClassificacaoExemplo): ClassificacaoResponse {
@@ -72,11 +86,11 @@ export function montarAluno(aluno: AlunoExemplo): AlunoResponse {
 }
 
 export function montarResponsavel({ id, nmPessoa, nrTelefone, usuarioId }: ResponsavelExemplo): ResponsavelResponse {
-  return { id, nmPessoa, nrTelefone, possuiAcesso: usuarioId !== null }
+  return { id, nmPessoa, nrTelefone, possuiAcesso: usuarioId !== null, usuarioId }
 }
 
 export function montarProfissional({ id, nmPessoa, cpf, email, usuarioId }: ProfissionalExemplo): ProfissionalResponse {
-  return { id, nmPessoa, cpf, email, possuiAcesso: usuarioId !== null }
+  return { id, nmPessoa, cpf, email, possuiAcesso: usuarioId !== null, usuarioId }
 }
 
 export function montarUsuario({ id, email, tpUsuario, stAtivo }: UsuarioExemplo): UsuarioResponse {
@@ -220,6 +234,7 @@ function montarResultado(avaliacao: AvaliacaoExemplo, { subgrupo, vlResultado, t
     vlResultado,
     tpEstagio,
     dsClassificacao: classificar('SUBGRUPO', subgrupo.id, avaliacao, vlResultado),
+    dsUnidade: unidadeDoSubgrupo(subgrupo.id),
   }
 }
 
@@ -270,7 +285,12 @@ export function montarEvolucao(aluno: AlunoExemplo): EvolucaoResponse {
       const chave = `${resumo.subgrupo.nmSubgrupo.trim().toLowerCase()}|${resumo.subgrupo.tpCalculo}`
       let indicador = indicadores.get(chave)
       if (!indicador) {
-        indicador = { nmSubgrupo: resumo.subgrupo.nmSubgrupo, tpCalculo: resumo.subgrupo.tpCalculo, pontos: [] }
+        indicador = {
+          nmSubgrupo: resumo.subgrupo.nmSubgrupo,
+          tpCalculo: resumo.subgrupo.tpCalculo,
+          pontos: [],
+          dsUnidade: unidadeDoSubgrupo(resumo.subgrupo.id),
+        }
         indicadores.set(chave, indicador)
       }
       indicador.pontos.push({
