@@ -164,7 +164,7 @@ async function main() {
 
           h1("7. Roadmap"),
           p("Dado o ritmo de estudo de aproximadamente 1 hora por dia, o roadmap segue a ordem das fases do backlog (seção 5), uma de cada vez, sem paralelismo. Cada fase começa com as decisões de regra de negócio e uma especificação detalhada (Especificacao_Detalhada_Fase1.docx a Especificacao_Detalhada_Fase3.docx) e é implementada em tarefas pequenas, conferidas com testes de ponta a ponta."),
-          p("As Fases 1, 2 e 3 estão concluídas, e o backend atende o escopo do MVP; fica pendente só inativar aluno (RF01). A próxima é o frontend (Fase 4). Os testes automatizados dos critérios de aceite foram adiados por decisão. A Fase 5 (Aula/Contrato/Mobile) só é revisitada depois que o sistema estiver funcionando de ponta a ponta."),
+          p("As Fases 1, 2 e 3 estão concluídas, e o backend atende o escopo do MVP, inclusive o inativar aluno (RF01), entregue logo depois da Fase 3. A próxima é o frontend (Fase 4). Os testes automatizados dos critérios de aceite foram adiados por decisão. A Fase 5 (Aula/Contrato/Mobile) só é revisitada depois que o sistema estiver funcionando de ponta a ponta."),
         ],
       },
     ],

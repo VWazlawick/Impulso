@@ -11,7 +11,7 @@ Sistema de controle de avaliações físico-motoras para um programa infantil de
 | 3 | Acesso do responsável, medidas com IMC/RCE, relatório de evolução e classificação por idade e sexo | ✅ Concluída |
 | 4 | Frontend React | ⏳ Próxima |
 
-O backend cobre o escopo do MVP; fica pendente apenas inativar aluno.
+O backend cobre todo o escopo do MVP, incluindo inativar e reativar alunos.
 
 ## Stack
 

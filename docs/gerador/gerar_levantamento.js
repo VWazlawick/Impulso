@@ -78,7 +78,7 @@ function bullet(text) {
 }
 
 const RF = [
-  { id: "RF01", desc: "O sistema deve permitir manter (cadastrar, consultar, editar e inativar) alunos.", status: "Fase 1, exceto inativar (pendente)" },
+  { id: "RF01", desc: "O sistema deve permitir manter (cadastrar, consultar, editar e inativar) alunos.", status: "Fase 1 (inativar entregue depois da Fase 3)" },
   { id: "RF02", desc: "O sistema deve permitir manter (cadastrar, consultar, editar e inativar) profissionais.", status: "Fase 1 (inativar = bloquear o acesso)" },
   { id: "RF03", desc: "O sistema deve permitir manter usuários dos tipos Profissional e Responsável, vinculados a uma entidade Usuário comum.", status: "Fase 1" },
   { id: "RF04", desc: "O sistema deve permitir registrar a avaliação física/motora do aluno, organizada conforme a ficha cadastrada (ex.: Dimensão Corporal, Aptidão Física e Aptidão Motora).", status: "Fase 2" },
@@ -149,7 +149,7 @@ const doc = new Document({
           children: [new TextRun({ text: "Levantamento de Requisitos", size: 30 })],
         }),
         p("Este documento consolida os requisitos funcionais, não funcionais e complementares do Impulso, sistema de controle de avaliações físico/motoras para um programa infantil de avaliação física/motora. Os requisitos foram levantados a partir de uma versão inicial e reconciliados com decisões tomadas ao longo do desenvolvimento (troca de plataforma mobile para web, estrutura de avaliação cadastrável Grupo/Subgrupo/Pergunta com resultado por subgrupo, e definição do escopo do MVP)."),
-        p("A coluna Situação indica em que fase cada requisito foi entregue. As Fases 1 (cadastros), 2 (módulo de avaliação) e 3 (evolução, medidas e classificação) estão concluídas, e com elas o backend; a interface web em React é a Fase 4. As linhas destacadas ainda não foram entregues."),
+        p("A coluna Situação indica em que fase cada requisito foi entregue. As Fases 1 (cadastros), 2 (módulo de avaliação) e 3 (evolução, medidas e classificação) estão concluídas, e com elas o backend, incluindo o inativar aluno (RF01); a interface web em React é a Fase 4. As linhas destacadas ainda não foram entregues."),
 
         h1("1. Requisitos Funcionais"),
         reqTable(RF, [1100, 6200, 2200], ["ID", "Descrição", "Situação"]),
@@ -173,6 +173,7 @@ const doc = new Document({
         bullet("As tabelas de referência viram faixas cadastradas pelo ADMIN (RC12), e a classificação é calculada na consulta, não gravada: corrigir uma faixa vale também para as avaliações antigas."),
         bullet("O relatório de evolução junta os subgrupos de grupos diferentes pelo nome e pelo tipo de cálculo, então o mesmo teste segue numa única série quando o aluno muda de faixa etária."),
         bullet("O responsável consulta, só para leitura, os dados básicos, as avaliações e a evolução dos filhos (RF14); não vê endereços nem os outros responsáveis do aluno."),
+        bullet("Inativar um aluno tira ele da lista padrão e impede ficha e avaliação nova, mas mantém o histórico (avaliações e evolução) visível, inclusive para o responsável. Admin e o profissional do aluno podem inativar e reativar."),
         bullet("Os testes automatizados dos critérios de aceite foram adiados; os cenários foram verificados com testes de ponta a ponta durante o desenvolvimento."),
       ],
     },
