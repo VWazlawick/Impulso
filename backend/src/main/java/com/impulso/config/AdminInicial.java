@@ -27,7 +27,8 @@ public class AdminInicial implements CommandLineRunner {
 
     @Override
     public void run(String... args){
-        if (email.isBlank() || senha.isBlank() || usuarioRepository.existsByEmail(email)){
+        if (email.isBlank() || senha.isBlank() || usuarioRepository.existsByTpUsuario(TipoUsuarioEnum.ADMIN) ||
+        usuarioRepository.existsByEmail(email)){
             return;
         }
         usuarioRepository.save(new Usuario(email, passwordEncoder.encode(senha), TipoUsuarioEnum.ADMIN));

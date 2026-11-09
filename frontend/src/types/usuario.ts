@@ -29,3 +29,18 @@ export type AtualizarUsuarioRequest = {
   email: string
   senha: string | null
 }
+
+// Uma linha da aba Usuários. O nome vem do profissional ou do responsável; admin não tem pessoa.
+export type UsuarioListaResponse = {
+  id: number
+  email: string
+  tpUsuario: TipoUsuario
+  stAtivo: boolean
+  nmPessoa: string | null
+}
+
+// Cria um administrador: só e-mail e senha, sem pessoa ligada.
+export type AdminRequest = {
+  email: string
+  senha: string
+}

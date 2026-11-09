@@ -1,8 +1,6 @@
 package com.impulso.service;
 
-import com.impulso.dto.AtualizarUsuarioRequest;
-import com.impulso.dto.UsuarioRequest;
-import com.impulso.dto.UsuarioResponse;
+import com.impulso.dto.*;
 import com.impulso.enums.TipoUsuarioEnum;
 import com.impulso.exception.ConflitoException;
 import com.impulso.exception.RecursoNaoEncontradoException;
@@ -17,6 +15,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class UsuarioService {
@@ -43,7 +43,7 @@ public class UsuarioService {
                 throw new AccessDeniedException("Somente administrador podem criar acessos de profissional!");
             }
             validarSemAcesso(profissional.getUsuario());
-            Usuario usuario = salvarNovoUsuario(request, TipoUsuarioEnum.PROFISSIONAL);
+            Usuario usuario = salvarNovoUsuario(request.email(), request.senha(), TipoUsuarioEnum.PROFISSIONAL);
             profissional.setUsuario(usuario);
             return UsuarioResponse.de(usuario);
         }
@@ -51,7 +51,7 @@ public class UsuarioService {
         if(pessoa instanceof Responsavel responsavel){
             responsavelService.buscarPermitido(responsavel.getId(), solicitante);
             validarSemAcesso(responsavel.getUsuario());
-            Usuario usuario = salvarNovoUsuario(request, TipoUsuarioEnum.RESPONSAVEL);
+            Usuario usuario = salvarNovoUsuario(request.email(), request.senha(), TipoUsuarioEnum.RESPONSAVEL);
             responsavel.setUsuario(usuario);
             return UsuarioResponse.de(usuario);
         }
@@ -78,13 +78,33 @@ public class UsuarioService {
     }
 
     @Transactional
-    public void inativar(Long id){
-        buscarEntidade(id).setStAtivo(false);
+    public void inativar(Long id, Long idSolicitante){
+        Usuario usuario = buscarEntidade(id);
+
+        if(usuario.getId().equals(idSolicitante)){
+            throw new ConflitoException("Você não pode bloquear o próprio acesso!");
+        }
+        if(usuario.getTpUsuario() == TipoUsuarioEnum.ADMIN && usuario.isStAtivo() &&
+        usuarioRepository.countByTpUsuarioAndStAtivoTrue(TipoUsuarioEnum.ADMIN)<=1 ){
+            throw new ConflitoException("É preciso manter pelo menos 1 admin ativo!");
+        }
+
+        usuario.setStAtivo(false);
     }
 
     @Transactional
     public void reativar(Long id){
         buscarEntidade(id).setStAtivo(true);
+    }
+
+    @Transactional
+    public UsuarioResponse cadastrarAdmin(AdminRequest request){
+        return UsuarioResponse.de(salvarNovoUsuario(request.email(), request.senha(), TipoUsuarioEnum.ADMIN));
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioListaResponse> listar(){
+        return usuarioRepository.listarComNome();
     }
 
     private void validarSemAcesso(Usuario usuarioAtual){
@@ -93,12 +113,12 @@ public class UsuarioService {
         }
     }
 
-    private Usuario salvarNovoUsuario(UsuarioRequest request, TipoUsuarioEnum tipo){
-        if(usuarioRepository.existsByEmail(request.email())){
+    private Usuario salvarNovoUsuario(String email, String senha, TipoUsuarioEnum tipo){
+        if(usuarioRepository.existsByEmail(email)){
             throw new ConflitoException("Email já cadastrado!");
         }
-        String senhaCriptografado = passwordEncoder.encode(request.senha());
-        return usuarioRepository.save(new Usuario(request.email(), senhaCriptografado, tipo));
+        String senhaCriptografado = passwordEncoder.encode(senha);
+        return usuarioRepository.save(new Usuario(email, senhaCriptografado, tipo));
     }
 
     private Usuario buscarEntidade(Long id){

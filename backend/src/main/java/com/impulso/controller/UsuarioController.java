@@ -1,8 +1,6 @@
 package com.impulso.controller;
 
-import com.impulso.dto.AtualizarUsuarioRequest;
-import com.impulso.dto.UsuarioRequest;
-import com.impulso.dto.UsuarioResponse;
+import com.impulso.dto.*;
 import com.impulso.model.Usuario;
 import com.impulso.security.UsuarioLogado;
 import com.impulso.service.UsuarioService;
@@ -12,6 +10,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuario")
@@ -51,8 +51,8 @@ public class UsuarioController {
     @PatchMapping("/{id}/inativar")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
-    public void inativar(@PathVariable Long id){
-        usuarioService.inativar(id);
+    public void inativar(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt){
+        usuarioService.inativar(id, UsuarioLogado.id(jwt));
     }
 
     @PatchMapping("/{id}/reativar")
@@ -62,5 +62,17 @@ public class UsuarioController {
         usuarioService.reativar(id);
     }
 
+    @PostMapping("/admin")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
+    public UsuarioResponse cadastrarAdmin(@RequestBody @Valid AdminRequest request){
+        return usuarioService.cadastrarAdmin(request);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<UsuarioListaResponse> listar(){
+        return usuarioService.listar();
+    }
 
 }

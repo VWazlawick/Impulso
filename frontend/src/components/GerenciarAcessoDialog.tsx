@@ -8,12 +8,15 @@ import type { UsuarioResponse } from '../types/usuario.ts'
 import { menta, perigo } from '../utils/cores.ts'
 import { emailValido } from '../utils/documentos.ts'
 import Carregando from './Carregando.tsx'
+import Dica from './Dica.tsx'
 import DialogoFormulario from './DialogoFormulario.tsx'
 import Etiqueta from './Etiqueta.tsx'
 
 type Props = {
   usuarioId: number
   nome: string
+  // O acesso de quem está logado: troca e-mail e senha, mas não se bloqueia.
+  proprio?: boolean
   onFechar: () => void
   onSalvo: () => void
 }
@@ -22,7 +25,7 @@ type PropsFormulario = Omit<Props, 'usuarioId'> & {
   usuario: UsuarioResponse
 }
 
-function FormularioAcesso({ usuario, nome, onFechar, onSalvo }: PropsFormulario) {
+function FormularioAcesso({ usuario, nome, proprio = false, onFechar, onSalvo }: PropsFormulario) {
   const [email, setEmail] = useState(usuario.email)
   const [senha, setSenha] = useState('')
   const [confirmacao, setConfirmacao] = useState('')
@@ -81,23 +84,28 @@ function FormularioAcesso({ usuario, nome, onFechar, onSalvo }: PropsFormulario)
       onFechar={onFechar}
       onSalvar={salvar}
       acaoExtra={
-        <Button
-          onClick={trocarSituacao}
-          disabled={salvando}
-          sx={
-            usuario.stAtivo
-              ? { bgcolor: perigo.fundo, color: perigo.texto, '&:hover': { bgcolor: '#FFE3E8' } }
-              : { bgcolor: menta.fundo, color: menta.texto, '&:hover': { bgcolor: '#C2EBD7' } }
-          }
-        >
-          {usuario.stAtivo ? 'Bloquear acesso' : 'Desbloquear'}
-        </Button>
+        proprio ? undefined : (
+          <Button
+            onClick={trocarSituacao}
+            disabled={salvando}
+            sx={
+              usuario.stAtivo
+                ? { bgcolor: perigo.fundo, color: perigo.texto, '&:hover': { bgcolor: '#FFE3E8' } }
+                : { bgcolor: menta.fundo, color: menta.texto, '&:hover': { bgcolor: '#C2EBD7' } }
+            }
+          >
+            {usuario.stAtivo ? 'Bloquear acesso' : 'Desbloquear'}
+          </Button>
+        )
       }
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Situação:</Typography>
         <Etiqueta cor={usuario.stAtivo ? menta : perigo} texto={usuario.stAtivo ? 'Pode entrar' : 'Bloqueado'} />
       </Box>
+      {proprio && (
+        <Dica>Este é o seu acesso: dá para trocar o e-mail e a senha, mas não bloquear. O e-mail novo vale a partir do próximo login.</Dica>
+      )}
       <TextField label="E-mail para entrar" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" />
       <TextField
         label="Nova senha"
@@ -121,11 +129,11 @@ function FormularioAcesso({ usuario, nome, onFechar, onSalvo }: PropsFormulario)
 }
 
 // Só o admin mexe num acesso que já existe: troca e-mail ou senha e bloqueia ou desbloqueia.
-function GerenciarAcessoDialog({ usuarioId, nome, onFechar, onSalvo }: Props) {
+function GerenciarAcessoDialog({ usuarioId, nome, proprio, onFechar, onSalvo }: Props) {
   const usuario = useDados(() => usuarioService.buscarPorId(usuarioId), [usuarioId])
 
   if (usuario.dados) {
-    return <FormularioAcesso usuario={usuario.dados} nome={nome} onFechar={onFechar} onSalvo={onSalvo} />
+    return <FormularioAcesso usuario={usuario.dados} nome={nome} proprio={proprio} onFechar={onFechar} onSalvo={onSalvo} />
   }
   return (
     <Dialog open onClose={onFechar} fullWidth maxWidth="xs">

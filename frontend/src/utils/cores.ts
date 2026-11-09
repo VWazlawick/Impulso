@@ -8,6 +8,7 @@ export const pessego: Cor = { fundo: '#FFE1D3', texto: '#8A3B1D' }
 export const menta: Cor = { fundo: '#D3F3E4', texto: '#17603F' }
 export const azul: Cor = { fundo: '#DCEBFF', texto: '#1D4E89' }
 export const rosa: Cor = { fundo: '#FFDDEB', texto: '#8C2457' }
+export const agua: Cor = { fundo: '#D5F3F3', texto: '#14595C' }
 export const neutro: Cor = { fundo: '#F4F0FF', texto: '#4F4677' }
 export const perigo: Cor = { fundo: '#FFF0F3', texto: '#A61E3D' }
 export const destaque: Cor = { fundo: '#FFD166', texto: '#473B1D' }

@@ -15,6 +15,7 @@ import Grupos from './pages/grupos/Grupos.tsx'
 import Login from './pages/login/Login.tsx'
 import Profissionais from './pages/profissionais/Profissionais.tsx'
 import Responsaveis from './pages/responsaveis/Responsaveis.tsx'
+import Usuarios from './pages/usuarios/Usuarios.tsx'
 import IrParaInicio from './sessao/IrParaInicio.tsx'
 import RequerPerfil from './sessao/RequerPerfil.tsx'
 import SessaoProvider from './sessao/SessaoProvider.tsx'
@@ -45,6 +46,7 @@ function App() {
               <Route path="/grupos/:id" element={<Estrutura />} />
               <Route path="/classificacoes" element={<Classificacoes />} />
               <Route path="/empresa" element={<Empresa />} />
+              <Route path="/usuarios" element={<Usuarios />} />
             </Route>
 
             <Route element={<RequerPerfil perfis={['RESPONSAVEL']} />}>

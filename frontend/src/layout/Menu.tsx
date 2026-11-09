@@ -6,12 +6,13 @@ import BarChartRounded from '@mui/icons-material/BarChartRounded'
 import FactCheckRounded from '@mui/icons-material/FactCheckRounded'
 import FamilyRestroomRounded from '@mui/icons-material/FamilyRestroomRounded'
 import FormatListBulletedRounded from '@mui/icons-material/FormatListBulletedRounded'
+import ManageAccountsRounded from '@mui/icons-material/ManageAccountsRounded'
 import PeopleAltRounded from '@mui/icons-material/PeopleAltRounded'
 import { NavLink } from 'react-router'
 import Emblema from '../components/Emblema.tsx'
 import { useSessao } from '../sessao/useSessao.ts'
 import type { TipoUsuario } from '../types/enums.ts'
-import { amarelo, azul, lavanda, lilas, menta, pessego, rosa, type Cor } from '../utils/cores.ts'
+import { agua, amarelo, azul, lavanda, lilas, menta, pessego, rosa, type Cor } from '../utils/cores.ts'
 
 type ItemMenu = {
   texto: string
@@ -44,6 +45,7 @@ const itensPorPerfil: Record<TipoUsuario, ItemMenu[]> = {
     { texto: 'Estrutura da ficha', caminho: '/grupos', icone: <FormatListBulletedRounded fontSize="small" />, cor: lavanda },
     { texto: 'Classificações', caminho: '/classificacoes', icone: <BarChartRounded fontSize="small" />, cor: amarelo },
     { texto: 'Empresa', caminho: '/empresa', icone: <ApartmentRounded fontSize="small" />, cor: azul },
+    { texto: 'Usuários', caminho: '/usuarios', icone: <ManageAccountsRounded fontSize="small" />, cor: agua },
   ],
   PROFISSIONAL: [{ texto: 'Meus alunos', ...alunos }, novaAvaliacao, responsaveis],
   RESPONSAVEL: [],
