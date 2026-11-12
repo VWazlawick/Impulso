@@ -10,11 +10,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
-    Optional<Usuario> findByEmail(String email);
+    // Sem diferença entre maiúsculas e minúsculas: e-mails antigos podem ter sido gravados com maiúsculas.
+    Optional<Usuario> findByEmailIgnoreCase(String email);
 
-    boolean existsByEmail(String email);
+    boolean existsByEmailIgnoreCase(String email);
 
-    boolean existsByEmailAndIdNot(String email, Long id);
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
 
     boolean existsByTpUsuario(TipoUsuarioEnum tpUsuario);
 

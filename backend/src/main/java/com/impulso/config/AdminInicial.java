@@ -3,6 +3,7 @@ package com.impulso.config;
 import com.impulso.enums.TipoUsuarioEnum;
 import com.impulso.model.Usuario;
 import com.impulso.repository.UsuarioRepository;
+import com.impulso.utils.NormalizadorEmail;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,10 +28,11 @@ public class AdminInicial implements CommandLineRunner {
 
     @Override
     public void run(String... args){
-        if (email.isBlank() || senha.isBlank() || usuarioRepository.existsByTpUsuario(TipoUsuarioEnum.ADMIN) ||
-        usuarioRepository.existsByEmail(email)){
+        String emailAdmin = NormalizadorEmail.normalizar(email);
+        if (emailAdmin.isBlank() || senha.isBlank() || usuarioRepository.existsByTpUsuario(TipoUsuarioEnum.ADMIN) ||
+        usuarioRepository.existsByEmailIgnoreCase(emailAdmin)){
             return;
         }
-        usuarioRepository.save(new Usuario(email, passwordEncoder.encode(senha), TipoUsuarioEnum.ADMIN));
+        usuarioRepository.save(new Usuario(emailAdmin, passwordEncoder.encode(senha), TipoUsuarioEnum.ADMIN));
     }
 }

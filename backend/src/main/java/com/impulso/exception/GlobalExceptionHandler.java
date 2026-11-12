@@ -52,6 +52,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(new ErroResponse(e.getMessage()));
     }
 
+    @ExceptionHandler(LoginBloqueadoException.class)
+    public ResponseEntity<ErroResponse> loginBloqueado(LoginBloqueadoException e){
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(new ErroResponse(e.getMessage()));
+    }
+
     @ExceptionHandler(ServicoIndisponivelException.class)
     public ResponseEntity<ErroResponse> servicoIndisponivel(ServicoIndisponivelException e){
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(new

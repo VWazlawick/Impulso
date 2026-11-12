@@ -11,6 +11,7 @@ import com.impulso.model.Usuario;
 import com.impulso.repository.PessoaRepository;
 import com.impulso.repository.UsuarioRepository;
 import com.impulso.security.Solicitante;
+import com.impulso.utils.NormalizadorEmail;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -66,11 +67,12 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponse atualizar(Long id, AtualizarUsuarioRequest request){
         Usuario usuario = buscarEntidade(id);
-        if(usuarioRepository.existsByEmailAndIdNot(request.email(), id)){
+        String email = NormalizadorEmail.normalizar(request.email());
+        if(usuarioRepository.existsByEmailIgnoreCaseAndIdNot(email, id)){
             throw new ConflitoException("Email já cadastrado!");
         }
 
-        usuario.setEmail(request.email());
+        usuario.setEmail(email);
         if(request.senha() != null){
             usuario.setSnUsuario(passwordEncoder.encode(request.senha()));
         }
@@ -114,11 +116,12 @@ public class UsuarioService {
     }
 
     private Usuario salvarNovoUsuario(String email, String senha, TipoUsuarioEnum tipo){
-        if(usuarioRepository.existsByEmail(email)){
+        String emailNormalizado = NormalizadorEmail.normalizar(email);
+        if(usuarioRepository.existsByEmailIgnoreCase(emailNormalizado)){
             throw new ConflitoException("Email já cadastrado!");
         }
         String senhaCriptografado = passwordEncoder.encode(senha);
-        return usuarioRepository.save(new Usuario(email, senhaCriptografado, tipo));
+        return usuarioRepository.save(new Usuario(emailNormalizado, senhaCriptografado, tipo));
     }
 
     private Usuario buscarEntidade(Long id){
