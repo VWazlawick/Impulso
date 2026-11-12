@@ -24,6 +24,6 @@ export const classificacaoService = {
 
   // DELETE /api/classificacao/{id}
   async excluir(id: number): Promise<void> {
-    await api.delete(`/grupo/${id}`)
+    await api.delete(`/classificacao/${id}`)
   },
 }

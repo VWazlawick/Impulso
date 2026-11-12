@@ -18,13 +18,13 @@ export const alunoService = {
 
   // POST /api/aluno
   async cadastrar(request: AlunoRequest): Promise<AlunoResponse> {
-    const { data } = await api.post<AlunoResponse>('/cadastrar', request)
+    const { data } = await api.post<AlunoResponse>('/aluno', request)
     return data
   },
 
   // PUT /api/aluno/{id}  (o profissional não muda aqui: para isso existe transferir)
   async atualizar(id: number, request: AlunoRequest): Promise<AlunoResponse> {
-    const { data } = await api.put<AlunoResponse>(`/atualizar/${id}`, request)
+    const { data } = await api.put<AlunoResponse>(`/aluno/${id}`, request)
     return data
   },
 
@@ -36,13 +36,13 @@ export const alunoService = {
 
   // PATCH /api/aluno/{id}/inativar
   async inativar(id: number): Promise<void> {
-    const { data } = await api.patch(`/alunos/${id}/inativar`)
+    const { data } = await api.patch(`/aluno/${id}/inativar`)
     return data
   },
 
   // PATCH /api/aluno/{id}/ativar
   async ativar(id: number): Promise<void> {
-    const { data } = await api.patch(`/alunos/${id}/ativar`)
+    const { data } = await api.patch(`/aluno/${id}/ativar`)
     return data
   },
 

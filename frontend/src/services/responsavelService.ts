@@ -6,7 +6,7 @@ export const responsavelService = {
   // GET /api/responsavel?nome=
   // O admin vê todos; o profissional, só os responsáveis dos alunos dele.
   async listar(nome = ''): Promise<ResponsavelResponse[]> {
-    const { data } = await api.post<ResponsavelResponse[]>('/responsavel', {params:
+    const { data } = await api.get<ResponsavelResponse[]>('/responsavel', {params:
           {nome: nome.trim() || undefined},})
     return data
   },

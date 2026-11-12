@@ -1,20 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { Alert, Box, Button, Chip, Paper, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, Paper, TextField, Typography } from '@mui/material'
 import StarRounded from '@mui/icons-material/StarRounded'
 import { Navigate, useNavigate } from 'react-router'
-import Dica from '../../components/Dica.tsx'
 import Emblema from '../../components/Emblema.tsx'
 import { mensagemDeErro } from '../../services/erros.ts'
 import { inicioDoPerfil } from '../../sessao/inicio.ts'
 import { useSessao } from '../../sessao/useSessao.ts'
 import { destaque } from '../../utils/cores.ts'
-
-// Contas dos dados de exemplo. Este quadro sai quando o backend for ligado.
-const contasDeExemplo = [
-  { perfil: 'Admin', email: 'adm@academia.com' },
-  { perfil: 'Profissional', email: 'ana.lima@academia.com' },
-  { perfil: 'Responsável', email: 'fernanda.souza@email.com' },
-]
 
 function Ilustracao() {
   return (
@@ -142,19 +134,6 @@ function Login() {
           <Typography sx={{ fontSize: 13, color: 'text.secondary', textAlign: 'center' }}>
             O acesso é criado pelo admin ou pelo profissional do aluno.
           </Typography>
-          <Dica destaque>
-            <Box sx={{ mb: 1 }}>Dados de exemplo: escolha uma conta e digite qualquer senha.</Box>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-              {contasDeExemplo.map((conta) => (
-                <Chip
-                  key={conta.email}
-                  label={conta.perfil}
-                  onClick={() => setEmail(conta.email)}
-                  sx={{ bgcolor: 'background.paper', color: 'secondary.contrastText' }}
-                />
-              ))}
-            </Box>
-          </Dica>
         </Box>
       </Paper>
     </Box>

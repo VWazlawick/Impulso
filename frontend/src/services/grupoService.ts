@@ -22,7 +22,7 @@ export const grupoService = {
 
   // PUT /api/grupo/{id}
   async atualizar(id: number, request: GrupoRequest): Promise<GrupoResponse> {
-    const { data } = await api.post(`/grupo/${id}`, request)
+    const { data } = await api.put(`/grupo/${id}`, request)
     return data
   },
 

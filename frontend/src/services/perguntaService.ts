@@ -4,7 +4,7 @@ import { api } from './api.ts'
 export const perguntaService = {
   // POST /api/subgrupo/{subgrupoId}/pergunta
   async cadastrar(subgrupoId: number, request: PerguntaRequest): Promise<PerguntaResponse> {
-    const { data } = await api.post(`/grupo/${subgrupoId}/pergunta`, request)
+    const { data } = await api.post(`/subgrupo/${subgrupoId}/pergunta`, request)
     return data
   },
 
@@ -16,6 +16,6 @@ export const perguntaService = {
 
   // DELETE /api/pergunta/{id}
   async excluir(id: number): Promise<void> {
-    await api.delete(`/grupo/${id}`)
+    await api.delete(`/pergunta/${id}`)
   },
 }

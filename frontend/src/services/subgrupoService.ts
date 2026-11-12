@@ -16,6 +16,6 @@ export const subgrupoService = {
 
   // DELETE /api/subgrupo/{id}
   async excluir(id: number): Promise<void> {
-    await api.delete(`/grupo/${id}`)
+    await api.delete(`/subgrupo/${id}`)
   },
 }
