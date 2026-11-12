@@ -1,4 +1,4 @@
-import type { AtualizarUsuarioRequest, UsuarioRequest, UsuarioResponse } from '../types/usuario.ts'
+import type { AdminRequest, AtualizarUsuarioRequest, UsuarioListaResponse, UsuarioRequest, UsuarioResponse } from '../types/usuario.ts'
 import { api } from './api.ts'
 
 export const usuarioService = {
@@ -31,5 +31,15 @@ export const usuarioService = {
 
   async reativar(id: number): Promise<void> {
     await api.patch(`/usuario/${id}/reativar`)
+  },
+
+  async listar(): Promise<UsuarioListaResponse[]> {
+    const { data } = await api.get<UsuarioListaResponse[]>('/usuario')
+    return data
+  },
+
+  async cadastrarAdmin(request: AdminRequest): Promise<UsuarioResponse> {
+    const { data } = await api.post<UsuarioResponse>('/usuario/admin', request)
+    return data
   },
 }
