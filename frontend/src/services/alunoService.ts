@@ -1,7 +1,6 @@
 import type { AlunoRequest, AlunoResponse } from '../types/aluno.ts'
 import type { ResponsavelRequest, ResponsavelResponse } from '../types/responsavel.ts'
 import { api } from './api.ts'
-import {request} from "axios";
 
 export const alunoService = {
   // GET /api/aluno?inativos=
