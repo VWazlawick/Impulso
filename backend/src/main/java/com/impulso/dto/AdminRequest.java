@@ -8,6 +8,6 @@ public record AdminRequest(
         @NotBlank(message = "Email obrigatório!")
         @Email(message = "Email inválido!") String email,
         @NotBlank(message = "Informe a senha!")
-        @Size(min=8, message = "A senha deve ter no mínimo 8 caractereces!") String senha
+        @Size(min=8, message = "A senha deve ter no mínimo 8 caracteres!") String senha
 ) {
 }

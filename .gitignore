@@ -4,3 +4,6 @@
 # Sistema operacional
 Thumbs.db
 desktop.ini
+
+# Configurações locais do IntelliJ
+.idea/
