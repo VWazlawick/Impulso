@@ -1,4 +1,4 @@
-import type {CepResponse, EnderecoRequest, EnderecoResponse} from '../types/endereco.ts'
+import type {EnderecoRequest, EnderecoResponse} from '../types/endereco.ts'
 import { api } from './api.ts'
 
 export const enderecoService = {
