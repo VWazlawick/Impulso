@@ -9,7 +9,19 @@ const {
 } = require("docx");
 
 const HEADER_BG = "1F3864";
-const SCHEMA = path.join(__dirname, "..", "..", "db", "schema.sql");
+// A estrutura oficial agora são as migrações do Flyway: a versão 1 dos bancos das escolas e a do banco central.
+const MIGRACOES = path.join(__dirname, "..", "..", "backend", "src", "main", "resources", "db");
+const SCHEMA = path.join(MIGRACOES, "migration", "V1__estrutura_inicial.sql");
+const CENTRAL = path.join(MIGRACOES, "central", "V1__catalogo.sql");
+
+const regrasFlyway = [
+  ["Onde ficam", "backend/src/main/resources/db/central (banco central) e db/migration (banco de cada escola)."],
+  ["Quando rodam", "Quando o backend sobe: primeiro o banco central, depois o banco de cada escola ativa. O comando de escola nova aplica tudo no banco que acabou de criar."],
+  ["Como sabe o que falta", "Cada banco tem a tabela flyway_schema_history com os arquivos que já recebeu; só os que faltam são aplicados."],
+  ["Mudança nova", "Um arquivo novo, com o número seguinte (V2__descricao.sql, V3__...), junto com a mudança na entidade Java. Um arquivo que já rodou nunca é editado."],
+  ["Banco que já existia", "É marcado como versão 1 sem refazer nada (foi assim com o banco de desenvolvimento, adotado como a primeira escola)."],
+  ["db/schema.sql", "Ficou congelado como referência: é o mesmo conteúdo da versão 1."],
+];
 const SAIDA = path.join(__dirname, "..", "Planejamento_Banco_de_Dados.docx");
 
 const grupos = [
@@ -119,6 +131,21 @@ async function main() {
   const larguraImg = 620;
 
   const ddl = fs.readFileSync(SCHEMA, "utf8").replace(/\r\n/g, "\n").trimEnd().split("\n");
+  const ddlCentral = fs.readFileSync(CENTRAL, "utf8").replace(/\r\n/g, "\n").trimEnd().split("\n");
+  const tabelaFlyway = new Table({
+    width: { size: 9500, type: WidthType.DXA },
+    columnWidths: [2600, 6900],
+    rows: [
+      new TableRow({ tableHeader: true, children: [
+        celula("Ponto", 2600, { negrito: true, fundo: HEADER_BG, cor: "FFFFFF" }),
+        celula("Como funciona", 6900, { negrito: true, fundo: HEADER_BG, cor: "FFFFFF" }),
+      ] }),
+      ...regrasFlyway.map(([n, o], i) => new TableRow({ children: [
+        celula(n, 2600, { negrito: true, fundo: i % 2 ? "F2F2F2" : undefined }),
+        celula(o, 6900, { fundo: i % 2 ? "F2F2F2" : undefined }),
+      ] })),
+    ],
+  });
 
   const tabelaNotas = new Table({
     width: { size: 9500, type: WidthType.DXA },
@@ -145,16 +172,22 @@ async function main() {
       children: [
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [new TextRun({ text: "Impulso", bold: true, size: 44, color: HEADER_BG })] }),
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 400 }, children: [new TextRun({ text: "Planejamento de Banco de Dados", size: 30 })] }),
-        p("Este documento apresenta o modelo de dados do sistema Impulso: o diagrama de entidade-relacionamento, notas sobre as principais decisões de modelagem e o script DDL completo para PostgreSQL. O script também está no repositório, em db/schema.sql, que é a fonte oficial."),
+        p("Este documento apresenta o modelo de dados do sistema Impulso: o diagrama de entidade-relacionamento, notas sobre as principais decisões de modelagem e o script DDL completo para PostgreSQL."),
+        p("Desde a Fase 5, o Impulso atende várias escolas com um backend só (Modelo 2). Cada escola tem o próprio banco, com a estrutura das seções 1 a 3, e um banco central guarda apenas a lista de escolas e de logins (seção 4). A estrutura oficial são as migrações do Flyway, no backend; o db/schema.sql ficou como referência."),
         h1("1. Diagrama de Entidade-Relacionamento"),
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [
           new ImageRun({ data: png, type: "png", transformation: { width: larguraImg, height: height * (larguraImg / width) } }),
         ] }),
         h1("2. Notas de Modelagem por Entidade"),
         tabelaNotas,
-        h1("3. Script DDL (PostgreSQL)"),
-        p("Conteúdo de db/schema.sql: criação das tabelas, restrições e índices de apoio."),
+        h1("3. Script DDL do Banco de Cada Escola (PostgreSQL)"),
+        p("Conteúdo de db/migration/V1__estrutura_inicial.sql (versão 1 do Flyway): criação das tabelas, restrições e índices de apoio."),
         blocoCodigo(ddl),
+        h1("4. Banco Central e Flyway"),
+        p("O banco central (impulso_central) fica fora dos bancos das escolas e não guarda nenhum dado de criança. A tabela cliente tem uma linha por escola, com o nome do banco dela; desligar st_ativo bloqueia a escola inteira. A tabela login liga cada e-mail de acesso a uma escola: é por ela que o login descobre o banco certo, e é ela que garante o e-mail único no sistema inteiro."),
+        blocoCodigo(ddlCentral),
+        p(" "),
+        tabelaFlyway,
       ],
     }],
   });

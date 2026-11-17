@@ -96,17 +96,22 @@ const RF = [
   { id: "RF16", desc: "O sistema deve permitir cadastrar um ou mais endereços por aluno, preenchendo rua, bairro e cidade automaticamente a partir do CEP.", status: "Fase 1 (ViaCEP)" },
   { id: "RF17", desc: "O sistema deve permitir listar, consultar, corrigir e excluir as avaliações de um aluno; a correção recalcula os resultados.", status: "Fase 2" },
   { id: "RF18", desc: "O sistema deve calcular o IMC e a razão cintura/estatura (RCE) e classificar os resultados pelas tabelas de referência por idade e sexo.", status: "Fase 3 (tabelas cadastradas pelo ADMIN)" },
+  { id: "RF19", desc: "O sistema deve permitir que o ADMIN veja todos os acessos da escola (admins, profissionais e responsáveis) numa lista, com busca e filtro por perfil, e cadastre outros administradores.", status: "Fases 4 e 5" },
+  { id: "RF20", desc: "O sistema deve permitir, pela linha de comando do servidor, cadastrar uma escola nova (banco, estrutura, geografia, empresa e primeiro admin), adotar um banco já existente e redefinir a senha de um acesso.", status: "Fase 5" },
 ];
 
 const RNF = [
   { id: "RNF01", desc: "O sistema deve ser implementado como uma aplicação web, com backend e frontend desacoplados (revisão do requisito original de aplicativo mobile Android/iOS)." },
   { id: "RNF02", desc: "O backend deve ser desenvolvido em Java 17+ com Spring Boot 4 (Spring Web MVC, Spring Data JPA, Spring Security com OAuth2 Resource Server), utilizando Maven como ferramenta de build." },
-  { id: "RNF03", desc: "O frontend deve ser desenvolvido em React, consumindo o backend via API REST." },
+  { id: "RNF03", desc: "O frontend deve ser desenvolvido em React com TypeScript e Material UI, consumindo o backend via API REST." },
   { id: "RNF04", desc: "O banco de dados utilizado deve ser o PostgreSQL." },
   { id: "RNF05", desc: "A autenticação deve ser feita via JWT, emitido a partir da entidade Usuario." },
-  { id: "RNF06", desc: "O sistema deve funcionar como uma base reaproveitável: cada empresa cliente executa sua própria instância, sem compartilhamento de dados entre instâncias (não multi-tenant)." },
+  { id: "RNF06", desc: "Um único backend atende várias escolas (Modelo 2): cada escola tem o próprio banco de dados, todas acessam pelo mesmo endereço e a escola é identificada pelo e-mail no login. Um banco central guarda só a lista de escolas e de logins. (Revisão do requisito original de uma instância por cliente.)" },
   { id: "RNF07", desc: "O sistema requer conexão com a internet para funcionar (inclusive para a carga inicial do IBGE e para a busca de CEP)." },
-  { id: "RNF08", desc: "A API deve ser documentada e testável pelo navegador (Swagger / OpenAPI)." },
+  { id: "RNF08", desc: "A API deve ser documentada e testável pelo navegador (Swagger / OpenAPI), com a documentação desligada em produção." },
+  { id: "RNF09", desc: "Bloquear um acesso ou trocar a senha deve encerrar na hora as sessões abertas; o token vale 8 horas." },
+  { id: "RNF10", desc: "O login deve travar por 15 minutos depois de 5 senhas erradas seguidas, sem revelar se o e-mail existe." },
+  { id: "RNF11", desc: "A estrutura dos bancos deve ser versionada (Flyway) e aplicada automaticamente no banco central e no de cada escola quando o backend sobe." },
 ];
 
 const RC = [
@@ -122,6 +127,9 @@ const RC = [
   { id: "RC10", desc: "A estrutura já usada em avaliações é protegida: pergunta com respostas não pode ser excluída nem trocar de tipo, e subgrupo com respostas não pode trocar de cálculo. Subgrupo com faixas de classificação não pode ser excluído.", status: "Confirmado" },
   { id: "RC11", desc: "As medidas do cadastro do aluno (peso, estatura e cintura) são as mais recentes: a ficha da avaliação vem preenchida com elas, e só a avaliação mais nova do aluno as atualiza. Estatura e cintura aceitam centímetros ou metros (valor abaixo de 3 é tratado como metro).", status: "Confirmado" },
   { id: "RC12", desc: "Cada faixa de classificação vale para um sexo e uma faixa de idade e diz: a partir de tal valor, o resultado recebe tal classificação. Não podem existir duas faixas com o mesmo início, para o mesmo indicador e sexo, com idades que se cruzam.", status: "Confirmado" },
+  { id: "RC13", desc: "O e-mail de login é único no sistema inteiro (sem diferença de maiúsculas): uma pessoa com acesso em duas escolas usa um e-mail em cada uma.", status: "Confirmado" },
+  { id: "RC14", desc: "Ninguém bloqueia o próprio acesso, e cada escola mantém sempre pelo menos um administrador ativo.", status: "Confirmado" },
+  { id: "RC15", desc: "LGPD: o consentimento dos responsáveis é colhido fora do sistema (por exemplo, na matrícula), os dados são mantidos para consulta (o aluno é inativado, não apagado), e política de privacidade, termo e contratos ficam fora do sistema, com validação jurídica.", status: "Confirmado (validar com advogado)" },
 ];
 
 const doc = new Document({
@@ -149,7 +157,7 @@ const doc = new Document({
           children: [new TextRun({ text: "Levantamento de Requisitos", size: 30 })],
         }),
         p("Este documento consolida os requisitos funcionais, não funcionais e complementares do Impulso, sistema de controle de avaliações físico/motoras para um programa infantil de avaliação física/motora. Os requisitos foram levantados a partir de uma versão inicial e reconciliados com decisões tomadas ao longo do desenvolvimento (troca de plataforma mobile para web, estrutura de avaliação cadastrável Grupo/Subgrupo/Pergunta com resultado por subgrupo, e definição do escopo do MVP)."),
-        p("A coluna Situação indica em que fase cada requisito foi entregue. As Fases 1 (cadastros), 2 (módulo de avaliação) e 3 (evolução, medidas e classificação) estão concluídas, e com elas o backend, incluindo o inativar aluno (RF01); a interface web em React é a Fase 4. As linhas destacadas ainda não foram entregues."),
+        p("A coluna Situação indica em que fase cada requisito foi entregue. As Fases 1 (cadastros), 2 (módulo de avaliação), 3 (evolução, medidas e classificação), 4 (frontend) e 5 (segurança e vários clientes) estão concluídas. A próxima etapa é colocar o sistema no ar. As linhas destacadas ainda não foram entregues."),
 
         h1("1. Requisitos Funcionais"),
         reqTable(RF, [1100, 6200, 2200], ["ID", "Descrição", "Situação"]),
@@ -175,6 +183,9 @@ const doc = new Document({
         bullet("O responsável consulta, só para leitura, os dados básicos, as avaliações e a evolução dos filhos (RF14); não vê endereços nem os outros responsáveis do aluno."),
         bullet("Inativar um aluno tira ele da lista padrão e impede ficha e avaliação nova, mas mantém o histórico (avaliações e evolução) visível, inclusive para o responsável. Admin e o profissional do aluno podem inativar e reativar."),
         bullet("Os testes automatizados dos critérios de aceite foram adiados; os cenários foram verificados com testes de ponta a ponta durante o desenvolvimento."),
+        bullet("Modelo 2 (RNF06): um backend para várias escolas, um banco por escola e um endereço único; a escola sai do e-mail no login, por isso o e-mail é único no sistema inteiro (RC13). Uma escola nova é cadastrada por comando no servidor (RF20)."),
+        bullet("A estrutura dos bancos passou a ser versionada com Flyway (RNF11): o antigo db/schema.sql virou a versão 1, e cada mudança nova é um arquivo numerado aplicado em todos os bancos."),
+        bullet("LGPD (RC15): sem registro de consentimento e sem exclusão definitiva no sistema. Ficam para depois o aviso de privacidade dentro do sistema, o registro de quem fez o quê e o prazo de guarda."),
       ],
     },
   ],

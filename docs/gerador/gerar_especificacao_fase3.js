@@ -297,6 +297,9 @@ async function main() {
 
         h1("9. Tarefas da Fase 3"),
         tabela(["#", "Tarefa", "Status"], [600, 7400, 1500], tarefas),
+
+        h1("10. O que Mudou Depois (Fases 4 e 5)"),
+        p("ResultadoResponse e EvolucaoIndicadorResponse ganharam o campo dsUnidade, com a unidade do resultado (por exemplo, cm ou s), tirada das perguntas do subgrupo. O detalhe da avaliação e o relatório de evolução, inclusive na área da família, mostram o valor com a unidade. As regras de medidas, evolução e classificação não mudaram. Desde a Fase 5, as faixas de classificação ficam no banco de cada escola (ver Especificacao_Detalhada_Fase5.docx)."),
       ],
     }],
   });

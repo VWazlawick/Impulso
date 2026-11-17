@@ -275,6 +275,9 @@ async function main() {
 
         h1("9. Tarefas da Fase 2"),
         tabela(["#", "Tarefa", "Status"], [600, 7400, 1500], tarefas),
+
+        h1("10. O que Mudou Depois (Fases 4 e 5)"),
+        p("GrupoResponse ganhou o campo qtSubgrupos, com a quantidade de subgrupos do grupo, mostrada no cartão do grupo na tela Estrutura da ficha. As regras de cálculo e as rotas desta fase não mudaram. Desde a Fase 5, a estrutura da ficha fica no banco de cada escola (ver Especificacao_Detalhada_Fase5.docx)."),
       ],
     }],
   });

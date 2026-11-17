@@ -258,6 +258,13 @@ async function main() {
 
         h1("8. Tarefas da Fase 1"),
         tabela(["#", "Tarefa", "Status"], [600, 7200, 1700], tarefas),
+
+        h1("9. O que Mudou Depois (Fases 4 e 5)"),
+        p("Esta especificação descreve a Fase 1 como foi entregue. Algumas regras de acesso mudaram depois; o detalhe está na Especificacao_Detalhada_Fase5.docx."),
+        p("Login: o e-mail diz de qual escola é a pessoa (lista central de logins), e a senha é conferida no banco dessa escola. O e-mail não diferencia maiúsculas e é único no sistema inteiro. Depois de 5 senhas erradas seguidas, o login daquele e-mail trava por 15 minutos (429)."),
+        p("Token: passa a levar a escola e um carimbo da senha, vale 8 horas e é conferido a cada pedido. Bloquear um acesso ou trocar a senha derruba a sessão na hora (401)."),
+        p("Primeiro administrador: o AdminInicial e as variáveis ADMIN_EMAIL e ADMIN_SENHA saíram. O primeiro ADMIN de cada escola vem do comando de escola nova, e o ADMIN pode cadastrar outros pela tela Usuários."),
+        p("Rotas novas: GET /api/usuario (todos os acessos, com o nome da pessoa) e POST /api/usuario/admin (cadastra um administrador). O PATCH /api/usuario/{id}/inativar passou a recusar o próprio acesso e o último admin ativo (409). ProfissionalResponse e ResponsavelResponse ganharam o campo usuarioId, usado pela tela para gerenciar o acesso."),
       ],
     }],
   });
