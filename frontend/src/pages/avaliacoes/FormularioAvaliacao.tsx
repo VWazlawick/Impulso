@@ -27,6 +27,8 @@ export type DadosAvaliacao = {
   vlPeso: number | null
   vlEstatura: number | null
   vlCintura: number | null
+  dsLocal: string | null
+  nrDuracao: number | null
   respostas: RespostaRequest[]
 }
 
@@ -36,9 +38,16 @@ type Medidas = {
   vlCintura: number | null
 }
 
+// Onde foi a avaliação e quanto tempo levou (em minutos): opcionais, como no cabeçalho da ficha de observação.
+type Sessao = {
+  dsLocal: string | null
+  nrDuracao: number | null
+}
+
 type Props = {
   grupo: GrupoDetalheResponse
   medidas: Medidas
+  sessao?: Sessao
   respostas?: RespostaResponse[]
   erro: string
   salvando: boolean
@@ -50,7 +59,9 @@ const corOpcao: Record<TipoOpcao, Cor> = { SIM: menta, PARCIAL: amarelo, NAO: pe
 
 // A ficha para preencher: medidas e as perguntas de cada teste do grupo.
 // Serve para a avaliação nova e para a correção (com as respostas já preenchidas).
-function FormularioAvaliacao({ grupo, medidas, respostas = [], erro, salvando, voltar, onSalvar }: Props) {
+function FormularioAvaliacao({ grupo, medidas, sessao, respostas = [], erro, salvando, voltar, onSalvar }: Props) {
+  const [local, setLocal] = useState(sessao?.dsLocal ?? '')
+  const [duracao, setDuracao] = useState(sessao?.nrDuracao == null ? '' : String(sessao.nrDuracao))
   const [peso, setPeso] = useState(paraCampo(medidas.vlPeso))
   const [estatura, setEstatura] = useState(paraCampo(medidas.vlEstatura))
   const [cintura, setCintura] = useState(paraCampo(medidas.vlCintura))
@@ -98,6 +109,15 @@ function FormularioAvaliacao({ grupo, medidas, respostas = [], erro, salvando, v
       }
     }
 
+    let nrDuracao: number | null = null
+    if (duracao.trim() !== '') {
+      nrDuracao = Number(duracao.trim())
+      if (!Number.isInteger(nrDuracao) || nrDuracao < 1 || nrDuracao > 600) {
+        setAviso('A duração vai em minutos inteiros, de 1 a 600.')
+        return
+      }
+    }
+
     const lidas = {
       vlPeso: lerNumero(peso),
       vlEstatura: paraCentimetros(lerNumero(estatura)),
@@ -122,11 +142,34 @@ function FormularioAvaliacao({ grupo, medidas, respostas = [], erro, salvando, v
     }
 
     setAviso('')
-    onSalvar({ ...lidas, respostas: lista })
+    onSalvar({ ...lidas, dsLocal: local.trim() || null, nrDuracao, respostas: lista })
   }
 
   return (
     <Box component="form" onSubmit={enviar} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Card sx={{ p: 2.25, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Typography variant="h2">Local e duração</Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '2fr 1fr' }, gap: 2 }}>
+          <TextField
+            label="Local"
+            placeholder="Ex.: quadra coberta"
+            value={local}
+            onChange={(e) => setLocal(e.target.value)}
+            slotProps={{ htmlInput: { maxLength: 100 } }}
+          />
+          <TextField
+            label="Duração"
+            value={duracao}
+            onChange={(e) => setDuracao(e.target.value)}
+            slotProps={{
+              htmlInput: { inputMode: 'numeric' },
+              input: { endAdornment: <InputAdornment position="end">min</InputAdornment> },
+            }}
+          />
+        </Box>
+        <Dica>Opcional: onde a avaliação foi feita e quanto tempo levou, como no cabeçalho da ficha de observação.</Dica>
+      </Card>
+
       <Card sx={{ p: 2.25, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         <Typography variant="h2">Medidas</Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 2 }}>

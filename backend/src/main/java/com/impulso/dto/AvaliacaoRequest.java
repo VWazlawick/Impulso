@@ -4,8 +4,11 @@ import com.impulso.utils.ConversorMedida;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,6 +26,11 @@ public record AvaliacaoRequest(
         @DecimalMin(value = "20", message = "Cintura inválida: informe em centímetros (60) ou em metros (0.60)!")
         @Digits(integer = 3, fraction = 2, message = "A cintura aceita até 3 dígitos inteiros e 2 decimais!")
         BigDecimal vlCintura,
+        @Size(max = 100, message = "O local aceita até 100 caracteres!")
+        String dsLocal,
+        @Positive(message = "A duração deve ser maior que zero!")
+        @Max(value = 600, message = "A duração vai até 600 minutos!")
+        Integer nrDuracao,
         @NotEmpty(message = "Informe pelo menos uma resposta!")
         List<@Valid RespostaRequest> respostas
 ) {
@@ -30,5 +38,6 @@ public record AvaliacaoRequest(
         public AvaliacaoRequest{
                 vlEstatura = ConversorMedida.paraCentimetros(vlEstatura);
                 vlCintura = ConversorMedida.paraCentimetros(vlCintura);
+                dsLocal = (dsLocal == null || dsLocal.isBlank()) ? null : dsLocal.strip();
         }
 }

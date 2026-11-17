@@ -55,6 +55,7 @@ public class AvaliacaoService {
 
         Avaliacao avaliacao = new Avaliacao(request.dtAvaliacao(), aluno, aluno.getProfissional(), grupo);
         preencherMedidas(avaliacao, request);
+        preencherSessao(avaliacao, request);
         preencherResposta(avaliacao, request.respostas());
         avaliacaoRepository.save(avaliacao);
         atualizarMedidas(avaliacao);
@@ -89,6 +90,7 @@ public class AvaliacaoService {
 
         avaliacao.setDtAvaliacao(request.dtAvaliacao());
         preencherMedidas(avaliacao,request);
+        preencherSessao(avaliacao, request);
 
         avaliacao.getResumos().clear();
         avaliacao.getRespostas().clear();
@@ -163,6 +165,12 @@ public class AvaliacaoService {
         alunoService.buscarAlunoPermitido(alunoId, solicitante);
         return avaliacaoRepository.findByIdAndAlunoId(id, alunoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Avaliação não encontrada!"));
+    }
+
+    // Local e duração da sessão: opcionais, valem só para esta avaliação (não vão para o cadastro do aluno).
+    private void preencherSessao(Avaliacao avaliacao, AvaliacaoRequest request){
+        avaliacao.setDsLocal(request.dsLocal());
+        avaliacao.setNrDuracao(request.nrDuracao());
     }
 
     private void preencherMedidas(Avaliacao avaliacao, AvaliacaoRequest request){

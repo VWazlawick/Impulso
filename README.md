@@ -11,7 +11,8 @@ Sistema de controle de avaliações físico-motoras para um programa infantil de
 | 3 | Acesso do responsável, medidas com IMC/RCE, relatório de evolução e classificação por idade e sexo | ✅ Concluída |
 | 4 | Frontend React (TypeScript + Material UI) com as telas dos três perfis e a aba Usuários | ✅ Concluída |
 | 5 | Segurança (bloqueio na hora, limite de tentativas, perfil de produção) e vários clientes: um backend, um banco por escola | ✅ Concluída |
-| 6 | Colocar no ar: hospedagem, domínio, HTTPS e backup | ⏳ Próxima |
+| 6 | No ar sem custo (Render + Neon), ficha por planilha, escola modelo para escolas novas, local e duração da avaliação | ✅ Concluída |
+| 7 | Domínio próprio, backup, hospedagem no Brasil, Aula/Contrato/Mobile e LGPD dentro do sistema | 🔜 Futura |
 
 ## Stack
 
@@ -21,7 +22,9 @@ Sistema de controle de avaliações físico-motoras para um programa infantil de
 - **Documentação da API:** Swagger / OpenAPI (springdoc), desligado no perfil de produção
 - **Integrações:** API do IBGE (países, estados e cidades) e ViaCEP (busca de CEP)
 - **Frontend:** React 19, TypeScript, Material UI, Vite
-- **Build:** Maven e npm
+- **Planilhas:** Apache POI (importação da ficha)
+- **Build:** Maven e npm, num Dockerfile só (o backend serve o site)
+- **Hospedagem:** Render (Docker) e Neon (PostgreSQL), no plano gratuito, os dois em Virgínia (EUA)
 
 ## Como funciona
 
@@ -33,8 +36,10 @@ Sistema de controle de avaliações físico-motoras para um programa infantil de
 - O **relatório de evolução** mostra a linha do tempo das avaliações e uma série por teste, mesmo quando o aluno muda de faixa etária.
 - Cada profissional só enxerga os próprios alunos (e os responsáveis, endereços e avaliações deles); o **responsável** vê, só para leitura, os dados, as avaliações e a evolução dos filhos; o ADMIN enxerga tudo.
 - **Várias escolas** usam o mesmo sistema e o mesmo endereço: cada uma tem o próprio banco, e o **e-mail de login** diz de qual escola é a pessoa.
+- A ficha inteira (grupos, testes, perguntas e tabelas de referência) pode vir de uma **planilha**, conferida antes de gravar, e uma **escola nova** já nasce com a ficha da escola modelo.
+- A avaliação também guarda, se quiser, o **local** e a **duração** da sessão.
 
-O conteúdo das fichas reais e as tabelas de classificação podem ser licenciados, então são cadastrados no banco de cada escola e **não fazem parte deste repositório**.
+O conteúdo das fichas reais e as tabelas de classificação podem ser licenciados, então são cadastrados no banco de cada escola (pelas telas ou pela planilha da própria escola) e **não fazem parte deste repositório**.
 
 ## Documentação
 
@@ -47,6 +52,7 @@ Os documentos de planejamento estão em [`docs/`](docs) (gerados pelos scripts d
 - [`Especificacao_Detalhada_Fase1.docx`](docs/Especificacao_Detalhada_Fase1.docx) a [`Especificacao_Detalhada_Fase3.docx`](docs/Especificacao_Detalhada_Fase3.docx) — entidades, permissões, contrato da API, erros e critérios de aceite do backend.
 - [`Especificacao_Detalhada_Fase4.docx`](docs/Especificacao_Detalhada_Fase4.docx) — frontend: organização, telas por perfil, sessão, erros, visual e como rodar.
 - [`Especificacao_Detalhada_Fase5.docx`](docs/Especificacao_Detalhada_Fase5.docx) — segurança, vários clientes (Modelo 2), Flyway e comandos de administração.
+- [`Especificacao_Detalhada_Fase6.docx`](docs/Especificacao_Detalhada_Fase6.docx) — hospedagem (Render + Neon), ficha por planilha, escola modelo e local e duração da avaliação.
 
 ## Setup local
 
@@ -65,3 +71,17 @@ Os documentos de planejamento estão em [`docs/`](docs) (gerados pelos scripts d
 6. Rodar o frontend (pasta `frontend`) com `npm install` e `npm run dev` (no PowerShell, `npm.cmd`), e abrir `http://localhost:5173`.
 
 Esqueceu a senha de um acesso? Rode o backend com `--redefinir-senha --email=...` para gerar uma senha provisória nova.
+
+Montar a ficha de uma escola sem estrutura a partir da planilha (o modelo `estrutura-avaliacao.xlsx` traz instruções e exemplos; a planilha preenchida fica fora do repositório):
+
+```
+--importar-estrutura --codigo=escola-abc --arquivo="C:\caminho\estrutura-avaliacao.xlsx"
+```
+
+Uma escola nova já nasce com a ficha da escola modelo (`app.clientes.modelo`); use `--modelo=código` para outra escola ou `--sem-modelo` para a ficha vazia.
+
+## No ar
+
+- O `Dockerfile` da raiz monta o frontend e o backend num jar só. No Render, é um Web Service Docker com três variáveis: `SPRING_PROFILES_ACTIVE=prod`, `DATABASE_URL` (string direta do Neon, sem `-pooler`) e `JWT_SECRET`. Cada push na `main` gera uma versão nova.
+- No computador, o `neon link` grava a conexão do Neon no `.env.local` (fora do Git). Uma run config com `neon` em **Active profiles** faz os comandos acima agirem no banco do site; sem o perfil, eles agem no PostgreSQL do computador.
+- No plano gratuito, o serviço dorme depois de 15 minutos sem acesso, e o primeiro acesso depois disso leva cerca de 1 minuto.

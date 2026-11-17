@@ -20,11 +20,14 @@ export type RespostaRequest = {
   tpOpcao: TipoOpcao | null
 }
 
+// dsLocal e nrDuracao (em minutos) são opcionais: onde foi a avaliação e quanto tempo levou.
 export type AvaliacaoRequest = {
   dtAvaliacao: string
   vlPeso: number | null
   vlEstatura: number | null
   vlCintura: number | null
+  dsLocal: string | null
+  nrDuracao: number | null
   respostas: RespostaRequest[]
 }
 
@@ -64,6 +67,8 @@ export type AvaliacaoResponse = {
   profissionalId: number
   grupoId: number
   nmGrupo: string
+  dsLocal: string | null
+  nrDuracao: number | null
   medidas: MedidasResponse
   respostas: RespostaResponse[]
   resultados: ResultadoResponse[]

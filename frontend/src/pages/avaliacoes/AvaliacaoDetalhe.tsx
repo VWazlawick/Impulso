@@ -92,6 +92,8 @@ function AvaliacaoDetalhe({ familia = false }: Props) {
             <Etiqueta cor={neutro} texto={atual.nmAluno} />
             <Etiqueta cor={amarelo} texto={contar(atual.nrIdade, 'ano', 'anos')} />
             <Etiqueta cor={neutro} texto={atual.nmGrupo} />
+            {atual.dsLocal && <Etiqueta cor={neutro} texto={`Local: ${atual.dsLocal}`} />}
+            {atual.nrDuracao !== null && <Etiqueta cor={neutro} texto={`Duração: ${atual.nrDuracao} min`} />}
           </Box>
         </Box>
         {!familia && (

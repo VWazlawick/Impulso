@@ -88,6 +88,7 @@ function CorrigirAvaliacao() {
       <FormularioAvaliacao
         grupo={grupo.dados}
         medidas={atual.medidas}
+        sessao={{ dsLocal: atual.dsLocal, nrDuracao: atual.nrDuracao }}
         respostas={atual.respostas}
         erro={erro}
         salvando={salvando}

@@ -57,8 +57,8 @@ const backlog = [
   ["Fase 3", "Acesso do Responsável aos dados dos filhos (somente leitura), medidas do corpo no cadastro e na avaliação com IMC e RCE, relatório de evolução e classificação pelas faixas de idade e sexo cadastradas pelo ADMIN. Fecha o backend.", "RF09, RF14, RF18", "Concluída"],
   ["Fase 4", "Frontend React (TypeScript + Material UI) com todas as telas dos três perfis ligadas à API, e a aba Usuários com cadastro de administradores.", "RNF01, RNF03, RF19", "Concluída"],
   ["Fase 5", "Segurança (bloqueio vale na hora, limite de tentativas, perfil de produção) e vários clientes (Modelo 2): um backend, um banco por escola, login pelo e-mail, Flyway e comandos de cliente novo e nova senha.", "RNF06, RNF08–RNF11, RF20", "Concluída"],
-  ["Fase 6", "Colocar no ar: hospedagem, domínio, HTTPS, backup e perfil de produção.", "—", "Próxima"],
-  ["Fase 7 (futura)", "Aula/Horário com notificação, Contrato do aluno, versão mobile; aviso de privacidade, auditoria e prazo de guarda (LGPD).", "RC04–RC07, RC15", "Futura"],
+  ["Fase 6", "No ar sem custo: site e API no Render e bancos no Neon, os dois em Virgínia (EUA), com HTTPS do próprio Render; cidades do IBGE gravadas em lote; importação da ficha por planilha; escola modelo para escolas novas; local e duração da avaliação; e-mail do primeiro admin conferido.", "RNF12, RF21–RF23", "Concluída"],
+  ["Fase 7 (futura)", "Domínio próprio, backup periódico e hospedagem no Brasil quando houver cliente pagando; Aula/Horário com notificação, Contrato do aluno, versão mobile; aviso de privacidade, auditoria e prazo de guarda (LGPD).", "RC04–RC07, RC15", "Futura"],
 ];
 
 const setupSteps = [
@@ -67,7 +67,9 @@ const setupSteps = [
   "Definir as variáveis de ambiente DB_PASSWORD (senha do usuário postgres) e JWT_SECRET (chave de assinatura do token). Nenhum segredo fica no código.",
   "Cadastrar a primeira escola rodando o backend com --novo-cliente --codigo=... --nome=... --cnpj=... --admin-email=... (no IntelliJ, em Program arguments de uma cópia da run config). O comando cria o banco da escola, importa a geografia do IBGE (precisa de internet), cria a empresa e o primeiro admin, e mostra uma senha provisória.",
   "Rodar o backend pelo IntelliJ ou com mvnw spring-boot:run (mvnw.cmd no Windows) dentro da pasta backend, e testar a API pelo Swagger em http://localhost:8080/swagger-ui.html.",
-  "Rodar o frontend: na pasta frontend, npm install e npm run dev (no PowerShell, npm.cmd), e abrir http://localhost:5173. Detalhes na Especificacao_Detalhada_Fase4.docx; os comandos de escola estão na Fase 5.",
+  "Rodar o frontend: na pasta frontend, npm install e npm run dev (no PowerShell, npm.cmd), e abrir http://localhost:5173. Detalhes na Especificacao_Detalhada_Fase4.docx; os comandos de escola estão nas Fases 5 e 6.",
+  "Banco do site (Neon): o neon link grava a conexão no .env.local da pasta impulso, fora do Git. Uma run config com neon em Active profiles faz os comandos agirem no banco do site; sem o perfil, tudo vai para o PostgreSQL do computador.",
+  "Ficha de uma escola sem estrutura: preencher a planilha estrutura-avaliacao.xlsx (fora do repositório) e rodar --importar-estrutura --codigo=... --arquivo=.... Uma escola nova já nasce com a ficha da escola modelo (app.clientes.modelo).",
 ];
 
 const dotArquitetura = `digraph Arquitetura {
@@ -77,7 +79,7 @@ const dotArquitetura = `digraph Arquitetura {
   edge [fontname="Helvetica", fontsize=11, color="#555555"];
 
   subgraph cluster_instancia {
-    label="Um backend para todas as escolas (Modelo 2)";
+    label="Um backend para todas as escolas (Modelo 2), no ar no Render e no Neon";
     style=dashed; color="#999999"; fontname="Helvetica-Oblique"; fontsize=11;
     Frontend [label="Frontend\\nReact + TypeScript\\n+ Material UI", fillcolor="#2E75B6"];
     Backend [label="Backend\\nSpring Boot 4 (Java 17)\\nAPI REST + Swagger", fillcolor="#1F3864"];
@@ -124,7 +126,7 @@ async function main() {
 
           h1("1. Visão Geral"),
           p("Impulso é um sistema de controle de avaliações físico-motoras para um programa infantil de avaliação física/motora. O administrador monta a ficha de avaliação de cada faixa etária; os profissionais cadastram alunos e responsáveis, registram as avaliações e o sistema calcula os resultados de cada teste e habilidade, permitindo acompanhar a evolução de cada aluno ao longo do tempo. Responsáveis (pais) acessam, só para leitura, os dados, as avaliações e a evolução dos alunos vinculados a eles."),
-          p("Este é um projeto pessoal/portfólio, usado também como estudo de Spring Boot e React, com ritmo de desenvolvimento de aproximadamente 1 hora por dia — por isso o roadmap é dividido em fases pequenas. Situação atual: as Fases 1 (cadastros), 2 (módulo de avaliação), 3 (evolução, medidas e classificação), 4 (frontend) e 5 (segurança e vários clientes) estão concluídas; a próxima é colocar o sistema no ar (Fase 6)."),
+          p("Este é um projeto pessoal/portfólio, usado também como estudo de Spring Boot e React, com ritmo de desenvolvimento de aproximadamente 1 hora por dia — por isso o roadmap é dividido em fases pequenas. Situação atual: as Fases 1 (cadastros), 2 (módulo de avaliação), 3 (evolução, medidas e classificação), 4 (frontend), 5 (segurança e vários clientes) e 6 (no ar, importação da ficha e escola modelo) estão concluídas, e o sistema está no ar."),
 
           h1("2. Escopo"),
           h2("2.1 Dentro do escopo (MVP)"),
@@ -155,6 +157,7 @@ async function main() {
           bullet("Frontend: React com TypeScript e Material UI, consumindo a API REST do backend (Especificacao_Detalhada_Fase4.docx)."),
           bullet("Banco de dados: PostgreSQL, com um banco central (escolas e logins) e um banco por escola. A estrutura é versionada com Flyway (backend/src/main/resources/db) e aplicada em todos os bancos quando o backend sobe (ver Planejamento_Banco_de_Dados.docx e Especificacao_Detalhada_Fase5.docx)."),
           bullet("Camadas do backend: controller → service → repository → model, com segurança (JWT) transversal e os clientes das APIs externas no pacote integracao (ver Plano_de_Classes.docx)."),
+          bullet("Hospedagem (Fase 6): o frontend é servido pelo próprio backend, num container Docker no Render (plano gratuito), e os bancos ficam no Neon (PostgreSQL gratuito), os dois em Virgínia (EUA). A conexão chega pela variável DATABASE_URL e nenhuma credencial fica no código (ver Especificacao_Detalhada_Fase6.docx)."),
 
           h1("5. Backlog por Fase"),
           simpleTable(
@@ -167,8 +170,8 @@ async function main() {
           ...setupSteps.map((s, i) => bullet(`${i + 1}. ${s}`)),
 
           h1("7. Roadmap"),
-          p("Dado o ritmo de estudo de aproximadamente 1 hora por dia, o roadmap segue a ordem das fases do backlog (seção 5), uma de cada vez, sem paralelismo. Cada fase começa com as decisões de regra de negócio e uma especificação detalhada (Especificacao_Detalhada_Fase1.docx a Especificacao_Detalhada_Fase5.docx) e é implementada em tarefas pequenas, conferidas com testes de ponta a ponta."),
-          p("As Fases 1 a 5 estão concluídas: o backend atende o escopo do MVP, o frontend cobre os três perfis, e o sistema está pronto para várias escolas, com as correções de segurança da revisão. A próxima é colocar o sistema no ar (Fase 6), de preferência sem custo no começo. Os testes automatizados dos critérios de aceite foram adiados por decisão. A Fase 7 (Aula/Contrato/Mobile e os itens de LGPD dentro do sistema) só é revisitada depois que o sistema estiver no ar."),
+          p("Dado o ritmo de estudo de aproximadamente 1 hora por dia, o roadmap segue a ordem das fases do backlog (seção 5), uma de cada vez, sem paralelismo. Cada fase começa com as decisões de regra de negócio e uma especificação detalhada (Especificacao_Detalhada_Fase1.docx a Especificacao_Detalhada_Fase6.docx) e é implementada em tarefas pequenas, conferidas com testes de ponta a ponta."),
+          p("As Fases 1 a 6 estão concluídas: o backend atende o escopo do MVP, o frontend cobre os três perfis, o sistema atende várias escolas e está no ar sem custo, e a ficha de cada escola pode ser montada por planilha. Os testes automatizados dos critérios de aceite foram adiados por decisão. A Fase 7 (domínio próprio, backup, hospedagem no Brasil, Aula/Contrato/Mobile e os itens de LGPD dentro do sistema) depende de haver escolas usando o sistema."),
         ],
       },
     ],

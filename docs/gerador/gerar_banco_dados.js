@@ -21,7 +21,9 @@ const regrasFlyway = [
   ["Mudança nova", "Um arquivo novo, com o número seguinte (V2__descricao.sql, V3__...), junto com a mudança na entidade Java. Um arquivo que já rodou nunca é editado."],
   ["Banco que já existia", "É marcado como versão 1 sem refazer nada (foi assim com o banco de desenvolvimento, adotado como a primeira escola)."],
   ["db/schema.sql", "Ficou congelado como referência: é o mesmo conteúdo da versão 1."],
+  ["Mudanças desde a V1", "V2__local_e_duracao_da_avaliacao.sql (Fase 6): colunas ds_local e nr_duracao, opcionais, na avaliação."],
 ];
+const V2 = path.join(__dirname, "..", "..", "backend", "src", "main", "resources", "db", "migration", "V2__local_e_duracao_da_avaliacao.sql");
 const SAIDA = path.join(__dirname, "..", "Planejamento_Banco_de_Dados.docx");
 
 const grupos = [
@@ -46,7 +48,7 @@ const grupos = [
     ["Grupo", [["id", "int", "pk"], ["nm_grupo", "String"], ["nr_idade_min", "int"], ["nr_idade_max", "int"]]],
     ["Subgrupo", [["id", "int", "pk"], ["nm_subgrupo", "String"], ["tp_calculo", "TipoCalculoEnum"], ["nr_ordem", "int"], ["grupo_id", "int", "fk"]]],
     ["Pergunta", [["id", "int", "pk"], ["ds_pergunta", "String"], ["tp_resposta", "TipoRespostaEnum"], ["ds_unidade", "String"], ["nr_ordem", "int"], ["subgrupo_id", "int", "fk"]]],
-    ["Avaliacao", [["id", "int", "pk"], ["dt_avaliacao", "Date"], ["vl_peso", "decimal"], ["vl_estatura", "decimal"], ["vl_cintura", "decimal"], ["aluno_id", "int", "fk"], ["profissional_id", "int", "fk"], ["grupo_id", "int", "fk"]]],
+    ["Avaliacao", [["id", "int", "pk"], ["dt_avaliacao", "Date"], ["vl_peso", "decimal"], ["vl_estatura", "decimal"], ["vl_cintura", "decimal"], ["ds_local", "String"], ["nr_duracao", "int"], ["aluno_id", "int", "fk"], ["profissional_id", "int", "fk"], ["grupo_id", "int", "fk"]]],
     ["Resposta", [["id", "int", "pk"], ["vl_resposta", "decimal"], ["tp_opcao", "TipoOpcaoEnum"], ["avaliacao_id", "int", "fk"], ["pergunta_id", "int", "fk"]]],
     ["AvaliacaoResumo", [["id", "int", "pk"], ["vl_resultado", "decimal"], ["tp_estagio", "EstagioEnum"], ["avaliacao_id", "int", "fk"], ["subgrupo_id", "int", "fk"]]],
     ["Classificacao", [["id", "int", "pk"], ["tp_indicador", "TipoIndicadorEnum"], ["subgrupo_id", "int", "fk"], ["tp_sexo", "SexoEnum"], ["nr_idade_min", "int"], ["nr_idade_max", "int"], ["vl_inicio", "decimal"], ["ds_classificacao", "String"]]],
@@ -76,7 +78,7 @@ const notas = [
   ["Convenção de nomes", "Colunas seguem os prefixos do código Java convertidos para snake_case: nm_ (nome), sg_ (sigla), dt_ (data), tp_ (tipo), nr_ (número), sn_ (senha), st_ (status), ds_ (descrição), cd_ (código), vl_ (valor)."],
   ["AlunoResponsavel", "Tabela associativa N:N — um aluno pode ter mais de um responsável e vice-versa."],
   ["Grupo / Subgrupo / Pergunta", "Estrutura da ficha, cadastrável pelo ADMIN. O grupo tem a faixa etária (nr_idade_min/nr_idade_max) e as faixas não se sobrepõem, então a idade do aluno aponta para um único grupo. O subgrupo (ex.: um teste ou uma habilidade) define o tp_calculo do resultado; a pergunta tem o tipo de resposta (NUMERO ou SIM_NAO_PARCIAL). O conteúdo pode ser licenciado: fica só no banco da instância, nunca no repositório."],
-  ["Avaliacao", "Guarda o grupo usado (escolhido pela idade do aluno na data) e o profissional responsável naquele momento — assim o histórico não muda se as faixas forem editadas ou o aluno for transferido depois. Também guarda as medidas do dia (peso, estatura e cintura); o IMC e a RCE são calculados a partir delas na consulta, sem coluna própria."],
+  ["Avaliacao", "Guarda o grupo usado (escolhido pela idade do aluno na data) e o profissional responsável naquele momento — assim o histórico não muda se as faixas forem editadas ou o aluno for transferido depois. Também guarda as medidas do dia (peso, estatura e cintura); o IMC e a RCE são calculados a partir delas na consulta, sem coluna própria. Desde a V2, guarda também o local e a duração da sessão (em minutos), opcionais."],
   ["Resposta", "Uma linha por pergunta respondida: vl_resposta (número) ou tp_opcao (SIM/NAO/PARCIAL), conforme o tipo da pergunta. Perguntas sem resposta são permitidas (teste não realizado)."],
   ["AvaliacaoResumo", "Resultado de cada subgrupo, calculado e gravado ao salvar a avaliação e recalculado ao editar: melhor tentativa (vl_resultado) ou estágio motor (tp_estagio: INICIAL, ELEMENTAR, MADURO)."],
   ["Classificacao", "Faixas das tabelas de referência, cadastradas pelo ADMIN (o conteúdo pode ser licenciado e fica só no banco da instância). Cada linha vale para um sexo e uma faixa de idade e diz: a partir de vl_inicio, o resultado recebe ds_classificacao. Vale a faixa de maior vl_inicio que não passa do valor, o que funciona tanto para maior-é-melhor quanto para menor-é-melhor e não deixa buracos entre faixas. tp_indicador SUBGRUPO aponta para um subgrupo de resultado numérico; IMC e RCE não têm subgrupo (CHECK garante a combinação). A classificação é calculada na consulta, então corrigir uma faixa vale também para as avaliações antigas."],
@@ -132,6 +134,7 @@ async function main() {
 
   const ddl = fs.readFileSync(SCHEMA, "utf8").replace(/\r\n/g, "\n").trimEnd().split("\n");
   const ddlCentral = fs.readFileSync(CENTRAL, "utf8").replace(/\r\n/g, "\n").trimEnd().split("\n");
+  const ddlV2 = fs.readFileSync(V2, "utf8").replace(/\r\n/g, "\n").trimEnd().split("\n");
   const tabelaFlyway = new Table({
     width: { size: 9500, type: WidthType.DXA },
     columnWidths: [2600, 6900],
@@ -183,6 +186,9 @@ async function main() {
         h1("3. Script DDL do Banco de Cada Escola (PostgreSQL)"),
         p("Conteúdo de db/migration/V1__estrutura_inicial.sql (versão 1 do Flyway): criação das tabelas, restrições e índices de apoio."),
         blocoCodigo(ddl),
+        p(" "),
+        p("Versão 2 (Fase 6), db/migration/V2__local_e_duracao_da_avaliacao.sql: local e duração da sessão de avaliação."),
+        blocoCodigo(ddlV2),
         h1("4. Banco Central e Flyway"),
         p("O banco central (impulso_central) fica fora dos bancos das escolas e não guarda nenhum dado de criança. A tabela cliente tem uma linha por escola, com o nome do banco dela; desligar st_ativo bloqueia a escola inteira. A tabela login liga cada e-mail de acesso a uma escola: é por ela que o login descobre o banco certo, e é ela que garante o e-mail único no sistema inteiro."),
         blocoCodigo(ddlCentral),

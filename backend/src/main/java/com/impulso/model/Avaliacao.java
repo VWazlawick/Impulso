@@ -47,6 +47,12 @@ public class Avaliacao {
     @Column(precision = 5, scale = 2)
     private BigDecimal vlCintura;
 
+    // Onde foi a avaliação e quanto tempo durou, em minutos (opcionais, como no cabeçalho das fichas)
+    @Column(length = 100)
+    private String dsLocal;
+
+    private Integer nrDuracao;
+
     @OneToMany(mappedBy = "avaliacao", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Resposta> respostas = new ArrayList<>();
 

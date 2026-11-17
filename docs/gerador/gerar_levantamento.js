@@ -98,6 +98,9 @@ const RF = [
   { id: "RF18", desc: "O sistema deve calcular o IMC e a razão cintura/estatura (RCE) e classificar os resultados pelas tabelas de referência por idade e sexo.", status: "Fase 3 (tabelas cadastradas pelo ADMIN)" },
   { id: "RF19", desc: "O sistema deve permitir que o ADMIN veja todos os acessos da escola (admins, profissionais e responsáveis) numa lista, com busca e filtro por perfil, e cadastre outros administradores.", status: "Fases 4 e 5" },
   { id: "RF20", desc: "O sistema deve permitir, pela linha de comando do servidor, cadastrar uma escola nova (banco, estrutura, geografia, empresa e primeiro admin), adotar um banco já existente e redefinir a senha de um acesso.", status: "Fase 5" },
+  { id: "RF21", desc: "O sistema deve permitir montar a ficha de uma escola sem estrutura a partir de uma planilha (grupos, testes, perguntas e tabelas de referência), conferindo a planilha inteira antes de gravar.", status: "Fase 6" },
+  { id: "RF22", desc: "Uma escola nova deve nascer com a ficha da escola modelo (grupos, subgrupos, perguntas e faixas), sem alunos, avaliações nem usuários dela.", status: "Fase 6" },
+  { id: "RF23", desc: "A avaliação deve registrar, de forma opcional, o local e a duração da sessão (em minutos), como no cabeçalho das fichas de observação.", status: "Fase 6" },
 ];
 
 const RNF = [
@@ -112,6 +115,7 @@ const RNF = [
   { id: "RNF09", desc: "Bloquear um acesso ou trocar a senha deve encerrar na hora as sessões abertas; o token vale 8 horas." },
   { id: "RNF10", desc: "O login deve travar por 15 minutos depois de 5 senhas erradas seguidas, sem revelar se o e-mail existe." },
   { id: "RNF11", desc: "A estrutura dos bancos deve ser versionada (Flyway) e aplicada automaticamente no banco central e no de cada escola quando o backend sobe." },
+  { id: "RNF12", desc: "O sistema deve rodar em hospedagem sem custo no começo, com a aplicação e os bancos na mesma região, e as credenciais apenas em variáveis de ambiente do servidor." },
 ];
 
 const RC = [
@@ -130,6 +134,7 @@ const RC = [
   { id: "RC13", desc: "O e-mail de login é único no sistema inteiro (sem diferença de maiúsculas): uma pessoa com acesso em duas escolas usa um e-mail em cada uma.", status: "Confirmado" },
   { id: "RC14", desc: "Ninguém bloqueia o próprio acesso, e cada escola mantém sempre pelo menos um administrador ativo.", status: "Confirmado" },
   { id: "RC15", desc: "LGPD: o consentimento dos responsáveis é colhido fora do sistema (por exemplo, na matrícula), os dados são mantidos para consulta (o aluno é inativado, não apagado), e política de privacidade, termo e contratos ficam fora do sistema, com validação jurídica.", status: "Confirmado (validar com advogado)" },
+  { id: "RC16", desc: "Nas tabelas de referência importadas por planilha, o valor que cai num buraco ou numa sobreposição entre dois níveis fica no nível de valores menores (arredonda para baixo).", status: "Confirmado" },
 ];
 
 const doc = new Document({
@@ -157,7 +162,7 @@ const doc = new Document({
           children: [new TextRun({ text: "Levantamento de Requisitos", size: 30 })],
         }),
         p("Este documento consolida os requisitos funcionais, não funcionais e complementares do Impulso, sistema de controle de avaliações físico/motoras para um programa infantil de avaliação física/motora. Os requisitos foram levantados a partir de uma versão inicial e reconciliados com decisões tomadas ao longo do desenvolvimento (troca de plataforma mobile para web, estrutura de avaliação cadastrável Grupo/Subgrupo/Pergunta com resultado por subgrupo, e definição do escopo do MVP)."),
-        p("A coluna Situação indica em que fase cada requisito foi entregue. As Fases 1 (cadastros), 2 (módulo de avaliação), 3 (evolução, medidas e classificação), 4 (frontend) e 5 (segurança e vários clientes) estão concluídas. A próxima etapa é colocar o sistema no ar. As linhas destacadas ainda não foram entregues."),
+        p("A coluna Situação indica em que fase cada requisito foi entregue. As Fases 1 (cadastros), 2 (módulo de avaliação), 3 (evolução, medidas e classificação), 4 (frontend), 5 (segurança e vários clientes) e 6 (no ar, importação da ficha e escola modelo) estão concluídas, e o sistema está no ar. As linhas destacadas ainda não foram entregues."),
 
         h1("1. Requisitos Funcionais"),
         reqTable(RF, [1100, 6200, 2200], ["ID", "Descrição", "Situação"]),
@@ -186,6 +191,8 @@ const doc = new Document({
         bullet("Modelo 2 (RNF06): um backend para várias escolas, um banco por escola e um endereço único; a escola sai do e-mail no login, por isso o e-mail é único no sistema inteiro (RC13). Uma escola nova é cadastrada por comando no servidor (RF20)."),
         bullet("A estrutura dos bancos passou a ser versionada com Flyway (RNF11): o antigo db/schema.sql virou a versão 1, e cada mudança nova é um arquivo numerado aplicado em todos os bancos."),
         bullet("LGPD (RC15): sem registro de consentimento e sem exclusão definitiva no sistema. Ficam para depois o aviso de privacidade dentro do sistema, o registro de quem fez o quê e o prazo de guarda."),
+        bullet("Hospedagem (RNF12): site e API no Render e bancos no Neon, os dois em Virgínia (EUA), no plano gratuito. Nenhum dos dois oferece região no Brasil sem custo; com app e banco juntos, só a ida do navegador até o servidor cruza o continente, uma vez por clique. Hospedar no Brasil fica para quando houver cliente pagando."),
+        bullet("A ficha licenciada (RC08) entra pela planilha de importação, preenchida pela própria escola (RF21): o conteúdo vai do arquivo dela direto para o banco dela, sem passar pelo código nem pelo repositório. Escolas novas recebem uma cópia da ficha da escola modelo (RF22)."),
       ],
     },
   ],
