@@ -46,7 +46,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/error").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/**").authenticated()
+                        // O resto é o site (o build do React, servido pelo backend em produção): páginas e
+                        // arquivos públicos. Os dados só saem pela /api, que exige token.
+                        .anyRequest().permitAll())
                 // Antes de conferir o token, descobre por ele de qual cliente é o pedido (e qual banco usar).
                 .addFilterBefore(new ClienteDoPedido(), BearerTokenAuthenticationFilter.class)
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
