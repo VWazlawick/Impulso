@@ -1,5 +1,7 @@
 package com.impulso.service;
 
+import com.impulso.clientes.ClienteAtual;
+import com.impulso.clientes.DiretorioLogins;
 import com.impulso.dto.*;
 import com.impulso.enums.TipoUsuarioEnum;
 import com.impulso.exception.ConflitoException;
@@ -26,12 +28,15 @@ public class UsuarioService {
     private final PessoaRepository pessoaRepository;
     private final PasswordEncoder passwordEncoder;
     private final ResponsavelService responsavelService;
+    private final DiretorioLogins diretorioLogins;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PessoaRepository pessoaRepository, PasswordEncoder passwordEncoder, ResponsavelService responsavelService) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PessoaRepository pessoaRepository, PasswordEncoder passwordEncoder,
+                          ResponsavelService responsavelService, DiretorioLogins diretorioLogins) {
         this.usuarioRepository = usuarioRepository;
         this.pessoaRepository = pessoaRepository;
         this.passwordEncoder = passwordEncoder;
         this.responsavelService = responsavelService;
+        this.diretorioLogins = diretorioLogins;
     }
 
     @Transactional
@@ -68,8 +73,13 @@ public class UsuarioService {
     public UsuarioResponse atualizar(Long id, AtualizarUsuarioRequest request){
         Usuario usuario = buscarEntidade(id);
         String email = NormalizadorEmail.normalizar(request.email());
-        if(usuarioRepository.existsByEmailIgnoreCaseAndIdNot(email, id)){
-            throw new ConflitoException("Email já cadastrado!");
+        String emailAtual = NormalizadorEmail.normalizar(usuario.getEmail());
+        if(!email.equals(emailAtual)){
+            // O e-mail é único no sistema inteiro: quem confere é a lista central de logins.
+            if(diretorioLogins.existe(email)){
+                throw new ConflitoException("Email já cadastrado!");
+            }
+            diretorioLogins.trocar(emailAtual, email);
         }
 
         usuario.setEmail(email);
@@ -117,11 +127,14 @@ public class UsuarioService {
 
     private Usuario salvarNovoUsuario(String email, String senha, TipoUsuarioEnum tipo){
         String emailNormalizado = NormalizadorEmail.normalizar(email);
-        if(usuarioRepository.existsByEmailIgnoreCase(emailNormalizado)){
+        // O e-mail é único no sistema inteiro (é por ele que o login acha o cliente).
+        if(diretorioLogins.existe(emailNormalizado)){
             throw new ConflitoException("Email já cadastrado!");
         }
         String senhaCriptografado = passwordEncoder.encode(senha);
-        return usuarioRepository.save(new Usuario(emailNormalizado, senhaCriptografado, tipo));
+        Usuario usuario = usuarioRepository.save(new Usuario(emailNormalizado, senhaCriptografado, tipo));
+        diretorioLogins.registrar(emailNormalizado, ClienteAtual.id());
+        return usuario;
     }
 
     private Usuario buscarEntidade(Long id){

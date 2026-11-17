@@ -1,5 +1,7 @@
 package com.impulso.security;
 
+import com.impulso.clientes.CatalogoClientes;
+import com.impulso.clientes.ClienteAtual;
 import com.impulso.model.Usuario;
 import com.impulso.repository.UsuarioRepository;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -8,9 +10,9 @@ import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
-// Confere, a cada pedido, se o dono do token ainda pode usar o sistema: o usuário existe,
-// não foi bloqueado e não trocou de senha depois que o token foi gerado. Se algo mudou,
-// o pedido volta 401 e o frontend leva para o login.
+// Confere, a cada pedido, se o dono do token ainda pode usar o sistema: o cliente dele está
+// ativo, o usuário existe no banco desse cliente, não foi bloqueado e não trocou de senha depois
+// que o token foi gerado. Se algo mudou, o pedido volta 401 e o frontend leva para o login.
 @Component
 public class UsuarioAtivoValidator implements OAuth2TokenValidator<Jwt> {
 
@@ -18,16 +20,24 @@ public class UsuarioAtivoValidator implements OAuth2TokenValidator<Jwt> {
             new OAuth2Error("invalid_token", "Acesso bloqueado ou senha alterada", null);
 
     private final UsuarioRepository usuarioRepository;
+    private final CatalogoClientes catalogoClientes;
 
-    public UsuarioAtivoValidator(UsuarioRepository usuarioRepository) {
+    public UsuarioAtivoValidator(UsuarioRepository usuarioRepository, CatalogoClientes catalogoClientes) {
         this.usuarioRepository = usuarioRepository;
+        this.catalogoClientes = catalogoClientes;
     }
 
     @Override
     public OAuth2TokenValidatorResult validate(Jwt jwt){
+        Object cliente = jwt.getClaim("cliente");
         Object id = jwt.getClaim("usuarioId");
         String carimbo = jwt.getClaimAsString("carimboSenha");
-        if(!(id instanceof Number numero) || carimbo == null){
+        if(!(cliente instanceof Number numeroCliente) || !(id instanceof Number numero) || carimbo == null){
+            return OAuth2TokenValidatorResult.failure(ACESSO_ENCERRADO);
+        }
+        // O ClienteDoPedido já escolheu o banco por este mesmo token; aqui só confirma.
+        long clienteId = numeroCliente.longValue();
+        if(!Long.valueOf(clienteId).equals(ClienteAtual.id()) || !catalogoClientes.estaAtivo(clienteId)){
             return OAuth2TokenValidatorResult.failure(ACESSO_ENCERRADO);
         }
 

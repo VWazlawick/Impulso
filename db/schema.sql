@@ -1,6 +1,9 @@
 -- ============================================================
 -- Impulso — Script DDL (PostgreSQL)
 -- ============================================================
+-- Este arquivo ficou congelado como a versão 1 do Flyway:
+-- backend/src/main/resources/db/migration/V1__estrutura_inicial.sql.
+-- Mudanças novas na estrutura vão em arquivos novos lá (V2__..., V3__...), não aqui.
 
 -- Documentos (CPF, CNPJ, CEP) e siglas são gravados só com dígitos/letras, sem formatação.
 

@@ -11,13 +11,8 @@ import java.util.Optional;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // Sem diferença entre maiúsculas e minúsculas: e-mails antigos podem ter sido gravados com maiúsculas.
+    // (Se um e-mail já existe ou não, quem responde é a lista central de logins, o DiretorioLogins.)
     Optional<Usuario> findByEmailIgnoreCase(String email);
-
-    boolean existsByEmailIgnoreCase(String email);
-
-    boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
-
-    boolean existsByTpUsuario(TipoUsuarioEnum tpUsuario);
 
     long countByTpUsuarioAndStAtivoTrue(TipoUsuarioEnum tpUsuario);
 

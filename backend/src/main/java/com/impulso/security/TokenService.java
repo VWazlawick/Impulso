@@ -24,7 +24,7 @@ public class TokenService {
         this.expirationMs = expirationMs;
     }
 
-    public String gerarToken(Usuario usuario){
+    public String gerarToken(Usuario usuario, Long clienteId){
         Instant agora = Instant.now();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -32,6 +32,7 @@ public class TokenService {
                 .issuedAt(agora)
                 .expiresAt(agora.plusMillis(expirationMs))
                 .subject(usuario.getEmail())
+                .claim("cliente", clienteId)
                 .claim("usuarioId", usuario.getId())
                 .claim("roles", List.of(usuario.getTpUsuario().name()))
                 .claim("carimboSenha", carimboDaSenha(usuario.getSnUsuario()))
