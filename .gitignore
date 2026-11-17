@@ -7,3 +7,9 @@ desktop.ini
 
 # Configurações locais do IntelliJ
 .idea/
+
+# Segredos locais: strings de conexão (ex.: as do Neon) e o vínculo local com o projeto do Neon
+.env
+.env.*
+!.env.example
+.neon
